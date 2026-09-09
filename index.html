@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consolidation & Equity Method Simulator</title>
+    <style>
+        :root {
+            --primary: #1a365d;
+            --primary-light: #2b6cb0;
+            --secondary: #2c7a7b;
+            --bg-gray: #f7fafc;
+            --border-color: #e2e8f0;
+            --danger: #e53e3e;
+            --success: #38a169;
+            --text-main: #2d3748;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-gray);
+            color: var(--text-main);
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        header h1 {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .global-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            cursor: pointer;
+            padding: 8px 14px;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary { background-color: var(--primary-light); color: white; }
+        .btn-primary:hover { background-color: #1c4ed8; }
+
+        .btn-success { background-color: var(--success); color: white; }
+        .btn-success:hover { background-color: #2f855a; }
+
+        .btn-danger { background-color: var(--danger); color: white; }
+        .btn-danger:hover { background-color: #c53030; }
+
+        .btn-outline { background-color: transparent; border: 1px solid white; color: white; }
+        .btn-outline:hover { background-color: rgba(255, 255, 255, 0.1); }
+
+        .btn-secondary { background-color: #718096; color: white; }
+        .btn-secondary:hover { background-color: #4a5568; }
+
+        .tabs-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .tabs-header {
+            display: flex;
+            background-color: #edf2f7;
+            border-bottom: 2px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #4a5568;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 0;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 25px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Narrative Formatting */
+        .narrative-card {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-left: 5px solid var(--primary-light);
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .narrative-card h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .narrative-card p, .narrative-card ul {
+            font-size: 0.92rem;
+            line-height: 1.6;
+            color: var(--text-main);
+        }
+
+        .narrative-card ul {
+            margin-left: 20px;
+            margin-top: 8px;
+        }
+
+        .narrative-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        td input[type="text"], select {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .number-col { text-align: right; }
+        .center-col { text-align: center; }
+
+        .entry-card {
+            background-color: #ffffff;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--primary-light);
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .entry-header {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 12px;
+            background-color: #f7fafc;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .entry-header input {
+            flex: 1;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .entry-status {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+
+        .status-ok { background-color: #c6f6d5; color: #22543d; }
+        .status-error { background-color: #fed7d7; color: #742a2a; }
+
+        .t-accounts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .t-account {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .t-account-title {
+            background-color: var(--primary);
+            color: white;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+        }
+
+        .t-account-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 120px;
+        }
+
+        .t-debit { border-right: 1px solid var(--border-color); padding: 5px; }
+        .t-credit { padding: 5px; }
+
+        .t-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            padding: 3px 0;
+            border-bottom: 1px dashed #edf2f7;
+        }
+
+        .t-account-footer {
+            background-color: #f7fafc;
+            border-top: 2px solid var(--primary);
+            padding: 6px 12px;
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+
+        .section-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .badge {
+            background-color: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+        
+        .badge-type {
+            background-color: rgba(255,255,255,0.2);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <h1>Consolidation & Financial Simulator</h1>
+            <small>Interactive educational tool for business combinations and financial consolidation · Created by Adrian R. Cecotto · 2026</small>
+            
+        </div>
+        <div class="global-actions">
+            <button class="btn-outline" onclick="loadDefaultCase()">Load Default Case</button>
+            <button class="btn-outline" onclick="clearAdjustments()">Clear Workpaper Entries</button>
+            <button class="btn-danger" onclick="clearAllData()">Reset All</button>
+        </div>
+    </header>
+
+    <div class="tabs-container">
+        <div class="tabs-header">
+            <button class="tab-btn active" onclick="switchTab('tab-narrative')">0. Case Narrative</button>
+            <button class="tab-btn" onclick="switchTab('tab-setup')">1. Initial Setup & Fair Values</button>
+            <button class="tab-btn" onclick="switchTab('tab-worksheet')">2. Consolidation Worksheet</button>
+            <button class="tab-btn" onclick="switchTab('tab-entries')">3. Journal Entries</button>
+            <button class="tab-btn" onclick="switchTab('tab-taccounts')">4. T-Accounts (General Ledger)</button>
+        </div>
+
+        <!-- TAB 0: CASE STUDY NARRATIVE -->
+        <div id="tab-narrative" class="tab-content active">
+            <div class="section-toolbar">
+                <h2>Business Combination Case Study: Apex Holdings Inc. & Beacon Technologies Co.</h2>
+            </div>
+
+            <div class="narrative-card">
+                <h3>1. Transaction Overview</h3>
+                <p>
+                    On January 1, 2026, <strong>Apex Holdings Inc.</strong> acquired <strong>100%</strong> of the outstanding common stock of <strong>Beacon Technologies Co.</strong> for <strong>$1,040,000</strong> in cash. 
+                    At the acquisition date, Beacon's stockholders' equity on its historical books was <strong>$600,000</strong>, consisting of:
+                </p>
+                <ul>
+                    <li><strong>Common Stock:</strong> $200,000</li>
+                    <li><strong>Additional Paid-in Capital:</strong> $20,000</li>
+                    <li><strong>Retained Earnings:</strong> $380,000</li>
+                </ul>
+            </div>
+
+            <div class="narrative-grid">
+                <div class="narrative-card">
+                    <h3>2. Identifiable Net Assets & Fair Value Adjustments</h3>
+                    <p>An independent valuation of Beacon Technologies Co.'s assets and liabilities revealed that book values equaled fair values except for the following items:</p>
+                    <ul>
+                        <li><strong>Land:</strong> Book value $70,000 | Fair value $150,000 (&uarr; <strong>+$80,000</strong> excess)</li>
+                        <li><strong>Buildings:</strong> Book value $200,000 | Fair value $330,000 (&uarr; <strong>+$130,000</strong> excess)</li>
+                        <li><strong>Equipment:</strong> Book value $150,000 | Fair value $120,000 (&darr; <strong>-$30,000</strong> deficit)</li>
+                        <li><strong>Unrecorded Brand Name:</strong> Book value $0 | Fair value $160,000 (&uarr; <strong>+$160,000</strong> new asset)</li>
+                    </ul>
+                </div>
+
+                <div class="narrative-card">
+                    <h3>3. Purchase Price Allocation & Goodwill Calculation</h3>
+                    <p>The total excess of purchase price over subsidiary book value is calculated as follows:</p>
+                    <ul>
+                        <li><strong>Purchase Price Paid:</strong> $1,040,000</li>
+                        <li><strong>Less: Subsidiary Book Value of Net Assets:</strong> ($600,000)</li>
+                        <li><strong>Total Excess over Book Value:</strong> <strong>$440,000</strong></li>
+                        <hr style="margin: 8px 0; border: none; border-top: 1px solid #cbd5e0;">
+                        <li><strong>Allocated to Net Asset Fair Value Adjustments:</strong> +$340,000</li>
+                        <li><strong>Residual Unallocated Excess (Goodwill):</strong> <strong>$100,000</strong></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="narrative-card">
+                <h3>4. Sequence of Accounting Entries</h3>
+                <p>To record the transaction and consolidate the balance sheets on the acquisition date, two separate journal entries are recognized:</p>
+
+                <h4 style="margin-top: 15px; color: var(--primary-light);">Entry 1: Initial Acquisition Entry (Parent's Books)</h4>
+                <p style="font-size:0.88rem; margin-bottom: 5px;">Apex Holdings Inc. records the cash outflow and the acquisition of Beacon Technologies stock:</p>
+                <table style="width: 100%; margin-bottom: 15px;">
+                    <thead>
+                        <tr>
+                            <th>Account Title</th>
+                            <th class="number-col">Debit ($)</th>
+                            <th class="number-col">Credit ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Investment in Beacon Tech.</td><td class="number-col">1,040,000.00</td><td class="number-col">-</td></tr>
+                        <tr><td>Cash</td><td class="number-col">-</td><td class="number-col">1,040,000.00</td></tr>
+                    </tbody>
+                </table>
+
+                <h4 style="color: var(--primary-light);">Entry 2: Consolidation Workpaper Elimination Entry [Entry C]</h4>
+                <p style="font-size:0.88rem; margin-bottom: 5px;">Workpaper entry to eliminate subsidiary equity accounts and the Investment account, adjusting assets to fair value and recognizing Goodwill:</p>
+                <table style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>Account / Line Item</th>
+                            <th class="number-col">Debit ($)</th>
+                            <th class="number-col">Credit ($)</th>
+                            <th>Explanation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Common Stock (Beacon)</td><td class="number-col">200,000.00</td><td class="number-col">-</td><td>Eliminate subsidiary equity</td></tr>
+                        <tr><td>Additional Paid-in Capital (Beacon)</td><td class="number-col">20,000.00</td><td class="number-col">-</td><td>Eliminate subsidiary equity</td></tr>
+                        <tr><td>Retained Earnings (Beacon)</td><td class="number-col">380,000.00</td><td class="number-col">-</td><td>Eliminate subsidiary equity</td></tr>
+                        <tr><td>Land</td><td class="number-col">80,000.00</td><td class="number-col">-</td><td>Write up to Fair Value</td></tr>
+                        <tr><td>Buildings</td><td class="number-col">130,000.00</td><td class="number-col">-</td><td>Write up to Fair Value</td></tr>
+                        <tr><td>Brand Name (Intangible)</td><td class="number-col">160,000.00</td><td class="number-col">-</td><td>Recognize unrecorded intangible asset</td></tr>
+                        <tr><td>Goodwill</td><td class="number-col">100,000.00</td><td class="number-col">-</td><td>Recognize residual Goodwill</td></tr>
+                        <tr><td>Equipment</td><td class="number-col">-</td><td class="number-col">30,000.00</td><td>Write down to Fair Value</td></tr>
+                        <tr><td>Investment in Beacon Tech.</td><td class="number-col">-</td><td class="number-col">1,040,000.00</td><td>Eliminate Parent investment account</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="text-align: right; margin-top: 15px;">
+                <button class="btn-primary" onclick="switchTab('tab-setup')">Proceed to 1. Initial Setup & Fair Values &rarr;</button>
+            </div>
+        </div>
+
+        <!-- TAB 1: INITIAL SETUP & FAIR VALUES -->
+        <div id="tab-setup" class="tab-content">
+            <div class="section-toolbar">
+                <h2>Initial Trial Balances & Fair Value Allocations</h2>
+                <button class="btn-primary" onclick="addAccountRow()">+ Add New Account</button>
+            </div>
+            
+            <p style="font-size:0.85rem; color:#718096; margin-bottom:10px;">
+                Enter initial historical book values for Parent and Subsidiary, along with Subsidiary Fair Values. Select account types (Asset, Liability, Equity, Revenue, Expense) to ensure correct normal balance debit/credit behavior.
+            </p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">Account Title</th>
+                        <th style="width: 12%;">Type</th>
+                        <th style="width: 16%;" class="number-col">Parent Book Value ($)</th>
+                        <th style="width: 16%;" class="number-col">Sub Book Value ($)</th>
+                        <th style="width: 16%;" class="number-col">Sub Fair Value ($)</th>
+                        <th style="width: 15%;" class="number-col">FV Excess ($)</th>
+                        <th style="width: 5%;" class="center-col">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="setup-body">
+                    <!-- Dynamic Setup Rows -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- TAB 2: CONSOLIDATION WORKSHEET -->
+        <div id="tab-worksheet" class="tab-content">
+            <div class="section-toolbar">
+                <h2>Consolidation Workpaper</h2>
+                <button class="btn-primary" onclick="addAccountRow()">+ Add New Account</button>
+            </div>
+            
+            <p style="font-size:0.85rem; color:#718096; margin-bottom:10px;">
+                Worksheet columns for Elimination Entries are automatically driven by entries in the <strong>Journal Entries</strong> tab.
+            </p>
+
+            <table id="worksheet-table">
+                <thead>
+                    <tr>
+                        <th style="width: 22%;">Account Title</th>
+                        <th style="width: 10%;">Type</th>
+                        <th style="width: 14%;" class="number-col">Parent (BV)</th>
+                        <th style="width: 14%;" class="number-col">Subsidiary (BV)</th>
+                        <th style="width: 12%;" class="number-col">Adjustments Dr.</th>
+                        <th style="width: 12%;" class="number-col">Adjustments Cr.</th>
+                        <th style="width: 12%;" class="number-col">Consolidated</th>
+                        <th style="width: 4%;" class="center-col">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="worksheet-body">
+                    <!-- Dynamic Worksheet Rows -->
+                </tbody>
+                <tfoot>
+                    <tr style="font-weight: bold; background-color: #edf2f7;">
+                        <td colspan="2">TOTALS CONTROL</td>
+                        <td class="number-col" id="tot-parent">0.00</td>
+                        <td class="number-col" id="tot-sub">0.00</td>
+                        <td class="number-col" id="tot-adj-dr">0.00</td>
+                        <td class="number-col" id="tot-adj-cr">0.00</td>
+                        <td class="number-col" id="tot-cons">0.00</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- TAB 3: JOURNAL ENTRIES -->
+        <div id="tab-entries" class="tab-content">
+            <div class="section-toolbar">
+                <h2>General Journal & Consolidation Workpaper Entries</h2>
+                <button class="btn-primary" onclick="addNewJournalEntry()">+ Add New Journal Entry</button>
+            </div>
+
+            <p style="font-size:0.85rem; color:#718096; margin-bottom:15px;">
+                Create investment entries on the acquirer's books or Elimination Entry C for the consolidation workpaper.
+            </p>
+
+            <div id="entries-container">
+                <!-- Dynamic Entry Cards -->
+            </div>
+        </div>
+
+        <!-- TAB 4: T-ACCOUNTS -->
+        <div id="tab-taccounts" class="tab-content">
+            <div class="section-toolbar">
+                <h2>General Ledger - Individual T-Accounts</h2>
+                <button class="btn-secondary" onclick="renderTAccounts()">Refresh T-Accounts</button>
+            </div>
+
+            <p style="font-size:0.85rem; color:#718096;">
+                Visual representation of initial balances and journal entry postings categorized according to normal balance rules.
+            </p>
+
+            <div class="t-accounts-grid" id="t-accounts-container">
+                <!-- Dynamic T-Accounts -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // GLOBAL STATE
+        let accounts = [];
+        let journalEntries = [];
+
+        // ACCOUNT TYPES & NORMAL BALANCES
+        const accountTypes = {
+            'A': { name: 'Asset (A)', normal: 'Dr' },
+            'L': { name: 'Liability (L)', normal: 'Cr' },
+            'E': { name: 'Equity (E)', normal: 'Cr' },
+            'R': { name: 'Revenue (R)', normal: 'Cr' },
+            'Ex': { name: 'Expense (Ex)', normal: 'Dr' }
+        };
+
+        window.onload = function() {
+            loadDefaultCase();
+        };
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+
+            if (tabId === 'tab-setup') renderSetup();
+            if (tabId === 'tab-worksheet') renderWorksheet();
+            if (tabId === 'tab-taccounts') renderTAccounts();
+        }
+
+        // NUMBER FORMATTING HELPERS
+        function formatNumber(num) {
+            if (isNaN(num) || num === null || num === undefined) return '0.00';
+            return parseFloat(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatInput(val) {
+            if (val === '' || val === undefined || val === null) return '';
+            let clean = val.toString().replace(/,/g, '');
+            let num = parseFloat(clean);
+            if (isNaN(num)) return '';
+            return num.toLocaleString('en-US');
+        }
+
+        function parseInput(val) {
+            if (!val) return 0;
+            let clean = val.toString().replace(/,/g, '');
+            let num = parseFloat(clean);
+            return isNaN(num) ? 0 : num;
+        }
+
+        function handleInputFormatting(inputElement, callback) {
+            let cursorPosition = inputElement.selectionStart;
+            let originalLength = inputElement.value.length;
+            
+            let num = parseInput(inputElement.value);
+            inputElement.value = inputElement.value ? formatInput(num) : '';
+            
+            let newLength = inputElement.value.length;
+            cursorPosition = cursorPosition + (newLength - originalLength);
+            inputElement.setSelectionRange(cursorPosition, cursorPosition);
+            
+            callback(num);
+        }
+
+        // ACCOUNT MANAGEMENT
+        function addAccountRow(name = 'New Account', type = 'A', parentVal = 0, subVal = 0, subFV = 0) {
+            const id = 'acc_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+            accounts.push({ 
+                id, 
+                name, 
+                type, 
+                parentVal: parseFloat(parentVal), 
+                subVal: parseFloat(subVal),
+                subFV: parseFloat(subFV)
+            });
+            renderSetup();
+            renderWorksheet();
+            updateAllEntryDropdowns();
+        }
+
+        function removeAccount(id) {
+            accounts = accounts.filter(acc => acc.id !== id);
+            journalEntries.forEach(entry => {
+                entry.lines = entry.lines.filter(line => line.accountId !== id);
+            });
+            renderSetup();
+            renderWorksheet();
+            renderJournalEntries();
+        }
+
+        function updateAccountData(id, field, value) {
+            const acc = accounts.find(a => a.id === id);
+            if (acc) {
+                if (field === 'name' || field === 'type') {
+                    acc[field] = value;
+                } else {
+                    acc[field] = parseInput(value);
+                }
+            }
+            renderSetup();
+            renderWorksheet();
+            updateAllEntryDropdowns();
+        }
+
+        // TAB 1: SETUP RENDER
+        function renderSetup() {
+            const tbody = document.getElementById('setup-body');
+            tbody.innerHTML = '';
+
+            accounts.forEach(acc => {
+                const fvExcess = acc.subFV - acc.subVal;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="text" value="${acc.name}" onchange="updateAccountData('${acc.id}', 'name', this.value)"></td>
+                    <td>
+                        <select onchange="updateAccountData('${acc.id}', 'type', this.value)">
+                            ${Object.keys(accountTypes).map(t => `<option value="${t}" ${t === acc.type ? 'selected' : ''}>${accountTypes[t].name}</option>`).join('')}
+                        </select>
+                    </td>
+                    <td class="number-col">
+                        <input type="text" class="number-col" value="${formatInput(acc.parentVal)}" oninput="handleInputFormatting(this, (v) => updateAccountData('${acc.id}', 'parentVal', v))">
+                    </td>
+                    <td class="number-col">
+                        <input type="text" class="number-col" value="${formatInput(acc.subVal)}" oninput="handleInputFormatting(this, (v) => updateAccountData('${acc.id}', 'subVal', v))">
+                    </td>
+                    <td class="number-col">
+                        <input type="text" class="number-col" value="${formatInput(acc.subFV)}" oninput="handleInputFormatting(this, (v) => updateAccountData('${acc.id}', 'subFV', v))">
+                    </td>
+                    <td class="number-col" style="font-weight:600; color:${fvExcess >= 0 ? 'var(--primary-light)' : 'var(--danger)'};">
+                        ${formatNumber(fvExcess)}
+                    </td>
+                    <td class="center-col"><button class="btn-danger" style="padding:2px 6px;" onclick="removeAccount('${acc.id}')">✕</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // CALCULATION LOGIC
+        function calculateAdjustments() {
+            const adj = {};
+            accounts.forEach(a => adj[a.id] = { dr: 0, cr: 0 });
+
+            journalEntries.forEach(entry => {
+                entry.lines.forEach(line => {
+                    if (line.accountId && adj[line.accountId]) {
+                        adj[line.accountId].dr += parseInput(line.debit);
+                        adj[line.accountId].cr += parseInput(line.credit);
+                    }
+                });
+            });
+            return adj;
+        }
+
+        // TAB 2: WORKSHEET RENDER
+        function renderWorksheet() {
+            const tbody = document.getElementById('worksheet-body');
+            tbody.innerHTML = '';
+
+            const adjustments = calculateAdjustments();
+            let totParent = 0, totSub = 0, totAdjDr = 0, totAdjCr = 0, totCons = 0;
+
+            accounts.forEach(acc => {
+                const adjDr = adjustments[acc.id] ? adjustments[acc.id].dr : 0;
+                const adjCr = adjustments[acc.id] ? adjustments[acc.id].cr : 0;
+                const isDebitNormal = (acc.type === 'A' || acc.type === 'Ex');
+
+                let cons = 0;
+                if (isDebitNormal) {
+                    cons = acc.parentVal + acc.subVal + adjDr - adjCr;
+                    totParent += acc.parentVal;
+                    totSub += acc.subVal;
+                } else {
+                    cons = acc.parentVal + acc.subVal + adjCr - adjDr;
+                    totParent -= acc.parentVal; 
+                    totSub -= acc.subVal;
+                }
+
+                totAdjDr += adjDr;
+                totAdjCr += adjCr;
+                totCons += isDebitNormal ? cons : -cons;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="text" value="${acc.name}" onchange="updateAccountData('${acc.id}', 'name', this.value)"></td>
+                    <td>
+                        <select onchange="updateAccountData('${acc.id}', 'type', this.value)">
+                            ${Object.keys(accountTypes).map(t => `<option value="${t}" ${t === acc.type ? 'selected' : ''}>${t}</option>`).join('')}
+                        </select>
+                    </td>
+                    <td class="number-col">
+                        <input type="text" class="number-col" value="${formatInput(acc.parentVal)}" oninput="handleInputFormatting(this, (v) => updateAccountData('${acc.id}', 'parentVal', v))">
+                    </td>
+                    <td class="number-col">
+                        <input type="text" class="number-col" value="${formatInput(acc.subVal)}" oninput="handleInputFormatting(this, (v) => updateAccountData('${acc.id}', 'subVal', v))">
+                    </td>
+                    <td class="number-col" style="color:var(--primary-light); font-weight:600;">${formatNumber(adjDr)}</td>
+                    <td class="number-col" style="color:var(--danger); font-weight:600;">${formatNumber(adjCr)}</td>
+                    <td class="number-col" style="font-weight:bold;">${formatNumber(cons)}</td>
+                    <td class="center-col"><button class="btn-danger" style="padding:2px 6px;" onclick="removeAccount('${acc.id}')">✕</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('tot-parent').innerText = formatNumber(totParent);
+            document.getElementById('tot-sub').innerText = formatNumber(totSub);
+            document.getElementById('tot-adj-dr').innerText = formatNumber(totAdjDr);
+            document.getElementById('tot-adj-cr').innerText = formatNumber(totAdjCr);
+            document.getElementById('tot-cons').innerText = formatNumber(totCons);
+        }
+
+        // TAB 3: JOURNAL ENTRIES
+        function addNewJournalEntry(description = 'New Journal Entry') {
+            const entryId = 'entry_' + Date.now();
+            journalEntries.push({
+                id: entryId,
+                description: description,
+                lines: [
+                    { accountId: '', debit: 0, credit: 0 },
+                    { accountId: '', debit: 0, credit: 0 }
+                ]
+            });
+            renderJournalEntries();
+        }
+
+        function removeJournalEntry(entryId) {
+            journalEntries = journalEntries.filter(e => e.id !== entryId);
+            renderJournalEntries();
+            renderWorksheet();
+        }
+
+        function addLineToEntry(entryId) {
+            const entry = journalEntries.find(e => e.id === entryId);
+            if (entry) {
+                entry.lines.push({ accountId: '', debit: 0, credit: 0 });
+                renderJournalEntries();
+            }
+        }
+
+        function removeLineFromEntry(entryId, lineIndex) {
+            const entry = journalEntries.find(e => e.id === entryId);
+            if (entry && entry.lines.length > 1) {
+                entry.lines.splice(lineIndex, 1);
+                renderJournalEntries();
+                renderWorksheet();
+            }
+        }
+
+        function updateEntryHeader(entryId, description) {
+            const entry = journalEntries.find(e => e.id === entryId);
+            if (entry) entry.description = description;
+        }
+
+        function updateLineData(entryId, lineIndex, field, value) {
+            const entry = journalEntries.find(e => e.id === entryId);
+            if (entry && entry.lines[lineIndex]) {
+                if (field === 'accountId') entry.lines[lineIndex].accountId = value;
+                else entry.lines[lineIndex][field] = parseInput(value);
+            }
+            updateEntryBalanceStatus(entryId);
+            renderWorksheet();
+        }
+
+        function updateEntryBalanceStatus(entryId) {
+            const entry = journalEntries.find(e => e.id === entryId);
+            if (!entry) return;
+
+            let totalDr = 0, totalCr = 0;
+            entry.lines.forEach(l => {
+                totalDr += parseInput(l.debit);
+                totalCr += parseInput(l.credit);
+            });
+
+            const statusElem = document.getElementById(`status_${entryId}`);
+            if (statusElem) {
+                const diff = Math.abs(totalDr - totalCr);
+                if (diff < 0.01 && totalDr > 0) {
+                    statusElem.className = 'entry-status status-ok';
+                    statusElem.innerText = `BALANCED ($${formatNumber(totalDr)})`;
+                } else {
+                    statusElem.className = 'entry-status status-error';
+                    statusElem.innerText = `UNBALANCED (Diff: $${formatNumber(diff)})`;
+                }
+            }
+        }
+
+        function renderJournalEntries() {
+            const container = document.getElementById('entries-container');
+            container.innerHTML = '';
+
+            journalEntries.forEach((entry, eIdx) => {
+                const card = document.createElement('div');
+                card.className = 'entry-card';
+
+                let linesHtml = '';
+                entry.lines.forEach((line, lIdx) => {
+                    linesHtml += `
+                        <tr>
+                            <td>
+                                <select onchange="updateLineData('${entry.id}', ${lIdx}, 'accountId', this.value)">
+                                    <option value="" ${!line.accountId ? 'selected' : ''}>-- Select Account --</option>
+                                    ${accounts.map(a => `<option value="${a.id}" ${a.id === line.accountId ? 'selected' : ''}>[${a.type}] ${a.name}</option>`).join('')}
+                                </select>
+                            </td>
+                            <td class="number-col">
+                                <input type="text" class="number-col" value="${formatInput(line.debit)}" oninput="handleInputFormatting(this, (v) => updateLineData('${entry.id}', ${lIdx}, 'debit', v))">
+                            </td>
+                            <td class="number-col">
+                                <input type="text" class="number-col" value="${formatInput(line.credit)}" oninput="handleInputFormatting(this, (v) => updateLineData('${entry.id}', ${lIdx}, 'credit', v))">
+                            </td>
+                            <td class="center-col">
+                                <button class="btn-danger" style="padding:2px 6px;" onclick="removeLineFromEntry('${entry.id}', ${lIdx})">✕</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="entry-header">
+                        <span class="badge">Entry #${eIdx + 1}</span>
+                        <input type="text" value="${entry.description}" placeholder="Description" onchange="updateEntryHeader('${entry.id}', this.value)">
+                        <div id="status_${entry.id}" class="entry-status status-error">VERIFYING</div>
+                        <button class="btn-danger" onclick="removeJournalEntry('${entry.id}')">Delete Entry</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50%;">Account</th>
+                                <th style="width: 20%;" class="number-col">Debit ($)</th>
+                                <th style="width: 20%;" class="number-col">Credit ($)</th>
+                                <th style="width: 10%;" class="center-col">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${linesHtml}
+                        </tbody>
+                    </table>
+                    <div style="margin-top: 10px;">
+                        <button class="btn-secondary" onclick="addLineToEntry('${entry.id}')">+ Add Line to Entry</button>
+                    </div>
+                `;
+                container.appendChild(card);
+                updateEntryBalanceStatus(entry.id);
+            });
+        }
+
+        function updateAllEntryDropdowns() {
+            renderJournalEntries();
+        }
+
+        // TAB 4: T-ACCOUNTS
+        function renderTAccounts() {
+            const container = document.getElementById('t-accounts-container');
+            container.innerHTML = '';
+
+            const adjustments = calculateAdjustments();
+
+            accounts.forEach(acc => {
+                const card = document.createElement('div');
+                card.className = 't-account';
+
+                let debitsHtml = '';
+                let creditsHtml = '';
+                const isDebitNormal = (acc.type === 'A' || acc.type === 'Ex');
+
+                if (acc.parentVal !== 0) {
+                    if (isDebitNormal) {
+                        debitsHtml += `<div class="t-item"><span>Apex Holdings BV</span><span>$${formatNumber(acc.parentVal)}</span></div>`;
+                    } else {
+                        creditsHtml += `<div class="t-item"><span>Apex Holdings BV</span><span>$${formatNumber(acc.parentVal)}</span></div>`;
+                    }
+                }
+
+                if (acc.subVal !== 0) {
+                    if (isDebitNormal) {
+                        debitsHtml += `<div class="t-item"><span>Beacon Tech BV</span><span>$${formatNumber(acc.subVal)}</span></div>`;
+                    } else {
+                        creditsHtml += `<div class="t-item"><span>Beacon Tech BV</span><span>$${formatNumber(acc.subVal)}</span></div>`;
+                    }
+                }
+
+                journalEntries.forEach((entry, idx) => {
+                    entry.lines.forEach(line => {
+                        if (line.accountId === acc.id) {
+                            if (line.debit > 0) {
+                                debitsHtml += `<div class="t-item"><span>Entry #${idx+1}</span><span>$${formatNumber(line.debit)}</span></div>`;
+                            }
+                            if (line.credit > 0) {
+                                creditsHtml += `<div class="t-item"><span>Entry #${idx+1}</span><span>$${formatNumber(line.credit)}</span></div>`;
+                            }
+                        }
+                    });
+                });
+
+                const adjDr = adjustments[acc.id] ? adjustments[acc.id].dr : 0;
+                const adjCr = adjustments[acc.id] ? adjustments[acc.id].cr : 0;
+                
+                let balance = 0;
+                if (isDebitNormal) {
+                    balance = acc.parentVal + acc.subVal + adjDr - adjCr;
+                } else {
+                    balance = acc.parentVal + acc.subVal + adjCr - adjDr;
+                }
+
+                card.innerHTML = `
+                    <div class="t-account-title">
+                        <span>${acc.name}</span>
+                        <span class="badge-type">${accountTypes[acc.type].name}</span>
+                    </div>
+                    <div class="t-account-body">
+                        <div class="t-debit">
+                            <div style="font-size:0.7rem; color:#a0aec0; text-align:center; font-weight:bold;">DEBIT</div>
+                            ${debitsHtml}
+                        </div>
+                        <div class="t-credit">
+                            <div style="font-size:0.7rem; color:#a0aec0; text-align:center; font-weight:bold;">CREDIT</div>
+                            ${creditsHtml}
+                        </div>
+                    </div>
+                    <div class="t-account-footer">
+                        <span>ENDING BALANCE (${isDebitNormal ? 'Dr' : 'Cr'}):</span>
+                        <span>$${formatNumber(balance)}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // RESET & LOAD DEFAULT CASE
+        function clearAllData() {
+            if (confirm("Are you sure you want to delete all accounts, setup values, and journal entries?")) {
+                accounts = [];
+                journalEntries = [];
+                renderSetup();
+                renderWorksheet();
+                renderJournalEntries();
+                renderTAccounts();
+            }
+        }
+
+        function clearAdjustments() {
+            if (confirm("Do you want to clear all journal entries and keep the trial balance accounts?")) {
+                journalEntries = [];
+                renderWorksheet();
+                renderJournalEntries();
+                renderTAccounts();
+            }
+        }
+
+        function loadDefaultCase() {
+            accounts = [
+                { id: 'acc_cash', name: 'Cash', type: 'A', parentVal: 1240000, subVal: 50000, subFV: 50000 },
+                { id: 'acc_inv', name: 'Investment in Beacon Tech.', type: 'A', parentVal: 0, subVal: 0, subFV: 0 },
+                { id: 'acc_land', name: 'Land', type: 'A', parentVal: 300000, subVal: 70000, subFV: 150000 },
+                { id: 'acc_building', name: 'Buildings', type: 'A', parentVal: 600000, subVal: 200000, subFV: 330000 },
+                { id: 'acc_equipment', name: 'Equipment', type: 'A', parentVal: 400000, subVal: 150000, subFV: 120000 },
+                { id: 'acc_brand', name: 'Brand Name (Intangible)', type: 'A', parentVal: 0, subVal: 0, subFV: 160000 },
+                { id: 'acc_goodwill', name: 'Goodwill', type: 'A', parentVal: 0, subVal: 0, subFV: 100000 },
+                { id: 'acc_liab', name: 'Liabilities', type: 'L', parentVal: 500000, subVal: 70000, subFV: 70000 },
+                { id: 'acc_cs_parent', name: 'Common Stock (Apex)', type: 'E', parentVal: 2040000, subVal: 0, subFV: 0 },
+                { id: 'acc_cs_sub', name: 'Common Stock (Beacon)', type: 'E', parentVal: 0, subVal: 200000, subFV: 0 },
+                { id: 'acc_apic_sub', name: 'Additional Paid-in Capital (Beacon)', type: 'E', parentVal: 0, subVal: 20000, subFV: 0 },
+                { id: 'acc_re_sub', name: 'Retained Earnings (Beacon)', type: 'E', parentVal: 0, subVal: 380000, subFV: 0 }
+            ];
+
+            journalEntries = [
+                {
+                    id: 'entry_acquisition',
+                    description: 'Entry 1: Initial Acquisition of Beacon Tech. Stock by Apex Holdings (Parent Books)',
+                    lines: [
+                        { accountId: 'acc_inv', debit: 1040000, credit: 0 },
+                        { accountId: 'acc_cash', debit: 0, credit: 1040000 }
+                    ]
+                },
+                {
+                    id: 'entry_elim_c',
+                    description: 'Entry 2 (Entry C): Workpaper Elimination of Sub Equity, FV Allocations & Goodwill',
+                    lines: [
+                        { accountId: 'acc_cs_sub', debit: 200000, credit: 0 },
+                        { accountId: 'acc_apic_sub', debit: 20000, credit: 0 },
+                        { accountId: 'acc_re_sub', debit: 380000, credit: 0 },
+                        { accountId: 'acc_land', debit: 80000, credit: 0 },
+                        { accountId: 'acc_building', debit: 130000, credit: 0 },
+                        { accountId: 'acc_brand', debit: 160000, credit: 0 },
+                        { accountId: 'acc_goodwill', debit: 100000, credit: 0 },
+                        { accountId: 'acc_equipment', debit: 0, credit: 30000 },
+                        { accountId: 'acc_inv', debit: 0, credit: 1040000 }
+                    ]
+                }
+            ];
+
+            renderSetup();
+            renderWorksheet();
+            renderJournalEntries();
+            renderTAccounts();
+        }
+    </script>
+</body>
+</html>
