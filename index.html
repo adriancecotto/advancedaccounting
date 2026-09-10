@@ -1,1015 +1,1578 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consolidation & Equity Method Simulator</title>
-    <style>
-        :root {
-            --primary: #1a365d;
-            --primary-light: #2b6cb0;
-            --secondary: #2c7a7b;
-            --bg-gray: #f7fafc;
-            --border-color: #e2e8f0;
-            --danger: #e53e3e;
-            --success: #38a169;
-            --text-main: #2d3748;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What's Your Emotional Relationship With Money? / ¿Cuál es tu relación emocional con el dinero?</title>
+  <style>
+    /* ==========================================
+       DESIGN SYSTEM & CSS VARIABLES
+       ========================================== */
+    :root {
+      --bg-color: #F8F9FA;
+      --card-bg: #FFFFFF;
+      --text-main: #1A202C;
+      --text-muted: #4A5568;
+      --text-light: #718096;
+      --border-color: #CBD5E1;
+      
+      --primary: #1E3A8A;        /* Deep Navy */
+      --primary-hover: #1E40AF;
+      --secondary: #0D9488;      /* Muted Teal */
+      --accent-avoidance: #2563EB;
+      --accent-emotional: #DB2777;
+      --accent-status: #7C3AED;
+      --accent-vigilance: #059669;
+      --accent-intentionality: #D97706;
 
-        * {
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 20px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+      
+      --transition: all 0.2s ease-in-out;
+    }
 
-        body {
-            background-color: var(--bg-gray);
-            color: var(--text-main);
-            padding: 20px;
-        }
+    /* Reset & Base Styling */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
 
-        header {
-            background-color: var(--primary);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 16px 40px;
+    }
 
-        header h1 {
-            font-size: 1.4rem;
-            font-weight: 600;
-        }
+    .container {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+    }
 
-        .global-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
+    /* Accessibility Focus Outline */
+    :focus-visible {
+      outline: 3px solid var(--primary);
+      outline-offset: 3px;
+    }
 
-        button {
-            cursor: pointer;
-            padding: 8px 14px;
-            border: none;
-            border-radius: 5px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            transition: all 0.2s ease;
-        }
+    /* Header & Language Selector */
+    header {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 20px;
+    }
 
-        .btn-primary { background-color: var(--primary-light); color: white; }
-        .btn-primary:hover { background-color: #1c4ed8; }
+    .lang-selector {
+      display: flex;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
 
-        .btn-success { background-color: var(--success); color: white; }
-        .btn-success:hover { background-color: #2f855a; }
+    .lang-btn {
+      background: none;
+      border: none;
+      padding: 12px 18px;
+      min-height: 44px;
+      min-width: 88px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-        .btn-danger { background-color: var(--danger); color: white; }
-        .btn-danger:hover { background-color: #c53030; }
+    .lang-btn.active {
+      background-color: var(--primary);
+      color: #FFFFFF;
+    }
 
-        .btn-outline { background-color: transparent; border: 1px solid white; color: white; }
-        .btn-outline:hover { background-color: rgba(255, 255, 255, 0.1); }
+    /* Card Layouts */
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+      padding: 32px;
+      margin-bottom: 24px;
+      border: 1px solid var(--border-color);
+      transition: var(--transition);
+    }
 
-        .btn-secondary { background-color: #718096; color: white; }
-        .btn-secondary:hover { background-color: #4a5568; }
+    @media (max-width: 480px) {
+      .card {
+        padding: 20px 16px;
+      }
+    }
 
-        .tabs-container {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            overflow: hidden;
-        }
+    h1 {
+      font-size: 2rem;
+      color: var(--primary);
+      margin-bottom: 12px;
+      line-height: 1.25;
+    }
 
-        .tabs-header {
-            display: flex;
-            background-color: #edf2f7;
-            border-bottom: 2px solid var(--border-color);
-            flex-wrap: wrap;
-        }
+    h2 {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin-bottom: 16px;
+    }
 
-        .tab-btn {
-            padding: 12px 20px;
-            background: none;
-            border: none;
-            border-bottom: 3px solid transparent;
-            color: #4a5568;
-            font-size: 0.95rem;
-            font-weight: 600;
-            border-radius: 0;
-        }
+    h3 {
+      font-size: 1.2rem;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
 
-        .tab-btn.active {
-            background: white;
-            color: var(--primary);
-            border-bottom-color: var(--primary);
-        }
+    .subtitle {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      font-weight: 500;
+    }
 
-        .tab-content {
-            display: none;
-            padding: 25px;
-        }
+    p {
+      margin-bottom: 16px;
+      color: var(--text-muted);
+    }
 
-        .tab-content.active {
-            display: block;
-        }
+    .disclaimer-box {
+      background-color: #EFF6FF;
+      border-left: 4px solid var(--primary);
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      margin: 20px 0;
+      font-size: 0.95rem;
+      color: #1E40AF;
+    }
 
-        /* Narrative Formatting */
-        .narrative-card {
-            background-color: #f8fafc;
-            border: 1px solid var(--border-color);
-            border-left: 5px solid var(--primary-light);
-            padding: 20px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-        }
+    /* Primary Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--primary);
+      color: #FFFFFF;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 12px 24px;
+      min-height: 48px;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+      text-decoration: none;
+      gap: 8px;
+    }
 
-        .narrative-card h3 {
-            color: var(--primary);
-            margin-bottom: 10px;
-            font-size: 1.1rem;
-        }
+    .btn:hover {
+      background-color: var(--primary-hover);
+    }
 
-        .narrative-card p, .narrative-card ul {
-            font-size: 0.92rem;
-            line-height: 1.6;
-            color: var(--text-main);
-        }
+    .btn-secondary {
+      background-color: #E2E8F0;
+      color: var(--text-main);
+    }
 
-        .narrative-card ul {
-            margin-left: 20px;
-            margin-top: 8px;
-        }
+    .btn-secondary:hover {
+      background-color: #CBD5E1;
+    }
 
-        .narrative-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 20px;
-        }
+    /* Views Controller */
+    .view-section {
+      display: none;
+      width: 100%;
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            font-size: 0.9rem;
-        }
+    .view-section.active {
+      display: block;
+    }
 
-        th, td {
-            border: 1px solid var(--border-color);
-            padding: 8px 12px;
-            text-align: left;
-        }
+    /* Intro Screen */
+    .meta-info {
+      display: flex;
+      gap: 20px;
+      margin: 24px 0;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--secondary);
+      flex-wrap: wrap;
+    }
 
-        th {
-            background-color: #f8fafc;
-            color: var(--primary);
-            font-weight: 700;
-        }
+    /* Progress Indicator */
+    .progress-container {
+      margin-bottom: 24px;
+    }
 
-        td input[type="text"], select {
-            width: 100%;
-            padding: 6px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 0.85rem;
-        }
+    .progress-status {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
 
-        .number-col { text-align: right; }
-        .center-col { text-align: center; }
+    .progress-bar-bg {
+      width: 100%;
+      height: 12px;
+      background-color: #E2E8F0;
+      border-radius: 6px;
+      overflow: hidden;
+    }
 
-        .entry-card {
-            background-color: #ffffff;
-            border: 1px solid var(--border-color);
-            border-left: 4px solid var(--primary-light);
-            border-radius: 6px;
-            padding: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
+    .progress-bar-fill {
+      height: 100%;
+      background-color: var(--secondary);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
 
-        .entry-header {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            margin-bottom: 12px;
-            background-color: #f7fafc;
-            padding: 10px;
-            border-radius: 4px;
-        }
+    /* Questionnaire Styling */
+    .question-fieldset {
+      border: none;
+      padding: 0;
+      margin: 0;
+    }
 
-        .entry-header input {
-            flex: 1;
-            font-weight: 600;
-            color: var(--primary);
-        }
+    .question-legend {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 24px;
+      line-height: 1.4;
+      display: block;
+      width: 100%;
+    }
 
-        .entry-status {
-            font-size: 0.8rem;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-weight: 700;
-        }
+    .likert-scale {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
 
-        .status-ok { background-color: #c6f6d5; color: #22543d; }
-        .status-error { background-color: #fed7d7; color: #742a2a; }
+    .likert-option {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      min-height: 48px;
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition);
+      background-color: #FFFFFF;
+    }
 
-        .t-accounts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 15px;
-        }
+    .likert-option:hover {
+      border-color: var(--secondary);
+      background-color: #F0FDFA;
+    }
 
-        .t-account {
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            overflow: hidden;
-        }
+    .likert-option.selected {
+      border-color: var(--primary);
+      background-color: #EFF6FF;
+    }
 
-        .t-account-title {
-            background-color: var(--primary);
-            color: white;
-            text-align: center;
-            font-weight: bold;
-            font-size: 0.9rem;
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 12px;
-        }
+    .likert-option input[type="radio"] {
+      margin-right: 14px;
+      width: 20px;
+      height: 20px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
 
-        .t-account-body {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            min-height: 120px;
-        }
+    .likert-label {
+      font-size: 1rem;
+      color: var(--text-main);
+      font-weight: 500;
+      flex-grow: 1;
+    }
 
-        .t-debit { border-right: 1px solid var(--border-color); padding: 5px; }
-        .t-credit { padding: 5px; }
+    .validation-msg {
+      color: #DC2626;
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: none;
+    }
 
-        .t-item {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            padding: 3px 0;
-            border-bottom: 1px dashed #edf2f7;
-        }
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+    }
 
-        .t-account-footer {
-            background-color: #f7fafc;
-            border-top: 2px solid var(--primary);
-            padding: 6px 12px;
-            display: flex;
-            justify-content: space-between;
-            font-weight: bold;
-            font-size: 0.85rem;
-        }
+    /* Results Dashboard */
+    .tabs-nav {
+      display: flex;
+      border-bottom: 2px solid var(--border-color);
+      margin-bottom: 24px;
+      gap: 8px;
+    }
 
-        .section-toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
+    .tab-btn {
+      padding: 12px 20px;
+      min-height: 48px;
+      font-size: 1rem;
+      font-weight: 600;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: var(--transition);
+    }
 
-        .badge {
-            background-color: #e2e8f0;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-        }
-        
-        .badge-type {
-            background-color: rgba(255,255,255,0.2);
-            color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-        }
-    </style>
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .dominant-card {
+      background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%);
+      color: #FFFFFF;
+      padding: 32px;
+      border-radius: var(--radius-md);
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .dominant-card h3 {
+      color: #93C5FD;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .dominant-card h2 {
+      color: #FFFFFF;
+      font-size: 1.8rem;
+      margin-bottom: 12px;
+    }
+
+    .dominant-card p {
+      color: #E0E7FF;
+      font-size: 1.05rem;
+      margin-bottom: 0;
+    }
+
+    /* Custom Horizontal Chart */
+    .chart-container {
+      margin: 24px 0;
+    }
+
+    .chart-row {
+      margin-bottom: 18px;
+    }
+
+    .chart-label-group {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .chart-bar-bg {
+      height: 22px;
+      background-color: #E2E8F0;
+      border-radius: 11px;
+      overflow: hidden;
+      border: 1px solid #CBD5E1;
+    }
+
+    .chart-bar-fill {
+      height: 100%;
+      border-radius: 10px;
+      transition: width 0.8s ease-out;
+    }
+
+    /* Category Cards Grid */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      margin: 24px 0;
+    }
+
+    @media (min-width: 768px) {
+      .grid-2 {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .detail-box {
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      background: #FAFAFA;
+    }
+
+    .detail-box h4 {
+      margin-bottom: 10px;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .detail-box ul {
+      padding-left: 20px;
+      margin-bottom: 12px;
+    }
+
+    .detail-box li {
+      margin-bottom: 6px;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .reflection-box {
+      background-color: #F0FDFA;
+      border-left: 4px solid var(--secondary);
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      margin: 16px 0;
+      font-style: italic;
+      color: #0F766E;
+    }
+
+    .relational-card {
+      background-color: #F8FAFC;
+      border: 1px solid #CBD5E1;
+      border-radius: var(--radius-md);
+      padding: 24px;
+      margin: 24px 0;
+    }
+
+    .final-quote {
+      text-align: center;
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin: 28px 0;
+      padding: 20px;
+      border-top: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .actions-group {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin-top: 32px;
+      flex-wrap: wrap;
+    }
+
+    footer {
+      width: 100%;
+      max-width: 900px;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-color);
+      font-size: 0.85rem;
+      color: var(--text-light);
+      text-align: center;
+    }
+
+    /* Print View Container (Hidden on Screen) */
+    #print-view-container {
+      display: none;
+    }
+
+    /* Print Optimizations */
+    @media print {
+      body {
+        background: #FFFFFF !important;
+        color: #000000 !important;
+        padding: 0 !important;
+      }
+      
+      /* Hide all interactive elements */
+      header, .tabs-nav, .actions-group, .lang-selector, button, #view-intro, #view-quiz, #view-results {
+        display: none !important;
+      }
+
+      /* Display print view container explicitly */
+      #print-view-container {
+        display: block !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      .print-header {
+        margin-bottom: 20px;
+        border-bottom: 2px solid #000000;
+        padding-bottom: 10px;
+      }
+
+      .print-header h1 {
+        font-size: 1.8rem;
+        color: #000000 !important;
+      }
+
+      .print-card {
+        border: 1px solid #666666 !important;
+        border-radius: 6px !important;
+        padding: 16px !important;
+        margin-bottom: 16px !important;
+        page-break-inside: avoid;
+      }
+
+      .chart-bar-bg {
+        border: 1px solid #000000 !important;
+        background-color: #E2E8F0 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .chart-bar-fill {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+
+    /* Reduced Motion Accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
 </head>
 <body>
 
-    <header>
-        <div>
-            <h1>Consolidation & Financial Simulator</h1>
-            <small>Interactive educational tool for business combinations and financial consolidation · Created by Adrian R. Cecotto · 2026</small>
-            
-        </div>
-        <div class="global-actions">
-            <button class="btn-outline" onclick="loadDefaultCase()">Load Default Case</button>
-            <button class="btn-outline" onclick="clearAdjustments()">Clear Workpaper Entries</button>
-            <button class="btn-danger" onclick="clearAllData()">Reset All</button>
-        </div>
-    </header>
+  <!-- Language Bar -->
+  <header>
+    <div class="lang-selector" role="navigation" aria-label="Language options / Opciones de idioma">
+      <button class="lang-btn active" id="btn-lang-en" onclick="setLanguage('en')">English</button>
+      <button class="lang-btn" id="btn-lang-es" onclick="setLanguage('es')">Español</button>
+    </div>
+  </header>
 
-    <div class="tabs-container">
-        <div class="tabs-header">
-            <button class="tab-btn active" onclick="switchTab('tab-narrative')">0. Case Narrative</button>
-            <button class="tab-btn" onclick="switchTab('tab-setup')">1. Initial Setup & Fair Values</button>
-            <button class="tab-btn" onclick="switchTab('tab-worksheet')">2. Consolidation Worksheet</button>
-            <button class="tab-btn" onclick="switchTab('tab-entries')">3. Journal Entries</button>
-            <button class="tab-btn" onclick="switchTab('tab-taccounts')">4. T-Accounts (General Ledger)</button>
-        </div>
+  <main class="container">
 
-        <!-- TAB 0: CASE STUDY NARRATIVE -->
-        <div id="tab-narrative" class="tab-content active">
-            <div class="section-toolbar">
-                <h2>Business Combination Case Study: Apex Holdings Inc. & Beacon Technologies Co.</h2>
-            </div>
-
-            <div class="narrative-card">
-                <h3>1. Transaction Overview</h3>
-                <p>
-                    On January 1, 2026, <strong>Apex Holdings Inc.</strong> acquired <strong>100%</strong> of the outstanding common stock of <strong>Beacon Technologies Co.</strong> for <strong>$1,040,000</strong> in cash. 
-                    At the acquisition date, Beacon's stockholders' equity on its historical books was <strong>$600,000</strong>, consisting of:
-                </p>
-                <ul>
-                    <li><strong>Common Stock:</strong> $200,000</li>
-                    <li><strong>Additional Paid-in Capital:</strong> $20,000</li>
-                    <li><strong>Retained Earnings:</strong> $380,000</li>
-                </ul>
-            </div>
-
-            <div class="narrative-grid">
-                <div class="narrative-card">
-                    <h3>2. Identifiable Net Assets & Fair Value Adjustments</h3>
-                    <p>An independent valuation of Beacon Technologies Co.'s assets and liabilities revealed that book values equaled fair values except for the following items:</p>
-                    <ul>
-                        <li><strong>Land:</strong> Book value $70,000 | Fair value $150,000 (&uarr; <strong>+$80,000</strong> excess)</li>
-                        <li><strong>Buildings:</strong> Book value $200,000 | Fair value $330,000 (&uarr; <strong>+$130,000</strong> excess)</li>
-                        <li><strong>Equipment:</strong> Book value $150,000 | Fair value $120,000 (&darr; <strong>-$30,000</strong> deficit)</li>
-                        <li><strong>Unrecorded Brand Name:</strong> Book value $0 | Fair value $160,000 (&uarr; <strong>+$160,000</strong> new asset)</li>
-                    </ul>
-                </div>
-
-                <div class="narrative-card">
-                    <h3>3. Purchase Price Allocation & Goodwill Calculation</h3>
-                    <p>The total excess of purchase price over subsidiary book value is calculated as follows:</p>
-                    <ul>
-                        <li><strong>Purchase Price Paid:</strong> $1,040,000</li>
-                        <li><strong>Less: Subsidiary Book Value of Net Assets:</strong> ($600,000)</li>
-                        <li><strong>Total Excess over Book Value:</strong> <strong>$440,000</strong></li>
-                        <hr style="margin: 8px 0; border: none; border-top: 1px solid #cbd5e0;">
-                        <li><strong>Allocated to Net Asset Fair Value Adjustments:</strong> +$340,000</li>
-                        <li><strong>Residual Unallocated Excess (Goodwill):</strong> <strong>$100,000</strong></li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="narrative-card">
-                <h3>4. Sequence of Accounting Entries</h3>
-                <p>To record the transaction and consolidate the balance sheets on the acquisition date, two separate journal entries are recognized:</p>
-
-                <h4 style="margin-top: 15px; color: var(--primary-light);">Entry 1: Initial Acquisition Entry (Parent's Books)</h4>
-                <p style="font-size:0.88rem; margin-bottom: 5px;">Apex Holdings Inc. records the cash outflow and the acquisition of Beacon Technologies stock:</p>
-                <table style="width: 100%; margin-bottom: 15px;">
-                    <thead>
-                        <tr>
-                            <th>Account Title</th>
-                            <th class="number-col">Debit ($)</th>
-                            <th class="number-col">Credit ($)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>Investment in Beacon Tech.</td><td class="number-col">1,040,000.00</td><td class="number-col">-</td></tr>
-                        <tr><td>Cash</td><td class="number-col">-</td><td class="number-col">1,040,000.00</td></tr>
-                    </tbody>
-                </table>
-
-                <h4 style="color: var(--primary-light);">Entry 2: Consolidation Workpaper Elimination Entry [Entry C]</h4>
-                <p style="font-size:0.88rem; margin-bottom: 5px;">Workpaper entry to eliminate subsidiary equity accounts and the Investment account, adjusting assets to fair value and recognizing Goodwill:</p>
-                <table style="width: 100%;">
-                    <thead>
-                        <tr>
-                            <th>Account / Line Item</th>
-                            <th class="number-col">Debit ($)</th>
-                            <th class="number-col">Credit ($)</th>
-                            <th>Explanation</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>Common Stock (Beacon)</td><td class="number-col">200,000.00</td><td class="number-col">-</td><td>Eliminate subsidiary equity</td></tr>
-                        <tr><td>Additional Paid-in Capital (Beacon)</td><td class="number-col">20,000.00</td><td class="number-col">-</td><td>Eliminate subsidiary equity</td></tr>
-                        <tr><td>Retained Earnings (Beacon)</td><td class="number-col">380,000.00</td><td class="number-col">-</td><td>Eliminate subsidiary equity</td></tr>
-                        <tr><td>Land</td><td class="number-col">80,000.00</td><td class="number-col">-</td><td>Write up to Fair Value</td></tr>
-                        <tr><td>Buildings</td><td class="number-col">130,000.00</td><td class="number-col">-</td><td>Write up to Fair Value</td></tr>
-                        <tr><td>Brand Name (Intangible)</td><td class="number-col">160,000.00</td><td class="number-col">-</td><td>Recognize unrecorded intangible asset</td></tr>
-                        <tr><td>Goodwill</td><td class="number-col">100,000.00</td><td class="number-col">-</td><td>Recognize residual Goodwill</td></tr>
-                        <tr><td>Equipment</td><td class="number-col">-</td><td class="number-col">30,000.00</td><td>Write down to Fair Value</td></tr>
-                        <tr><td>Investment in Beacon Tech.</td><td class="number-col">-</td><td class="number-col">1,040,000.00</td><td>Eliminate Parent investment account</td></tr>
-                    </tbody>
-                </table>
-            </div>
-            
-            <div style="text-align: right; margin-top: 15px;">
-                <button class="btn-primary" onclick="switchTab('tab-setup')">Proceed to 1. Initial Setup & Fair Values &rarr;</button>
-            </div>
+    <!-- VIEW 1: INTRO SCREEN -->
+    <section id="view-intro" class="view-section active" aria-labelledby="intro-title">
+      <div class="card">
+        <h1 id="intro-title">What's Your Emotional Relationship With Money?</h1>
+        <div class="subtitle" id="intro-subtitle">An interactive self-assessment about emotions, beliefs, and financial behavior.</div>
+        
+        <p id="intro-p1">This is not a test of how financially knowledgeable you are. There are no right or wrong answers. The purpose is to help you recognize how emotions and beliefs may influence financial decisions.</p>
+        
+        <div class="disclaimer-box" id="intro-disclaimer">
+          This assessment is an educational reflection tool. It is not a psychological diagnosis, financial assessment, or clinically validated test.
         </div>
 
-        <!-- TAB 1: INITIAL SETUP & FAIR VALUES -->
-        <div id="tab-setup" class="tab-content">
-            <div class="section-toolbar">
-                <h2>Initial Trial Balances & Fair Value Allocations</h2>
-                <button class="btn-primary" onclick="addAccountRow()">+ Add New Account</button>
-            </div>
-            
-            <p style="font-size:0.85rem; color:#718096; margin-bottom:10px;">
-                Enter initial historical book values for Parent and Subsidiary, along with Subsidiary Fair Values. Select account types (Asset, Liability, Equity, Revenue, Expense) to ensure correct normal balance debit/credit behavior.
-            </p>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 20%;">Account Title</th>
-                        <th style="width: 12%;">Type</th>
-                        <th style="width: 16%;" class="number-col">Parent Book Value ($)</th>
-                        <th style="width: 16%;" class="number-col">Sub Book Value ($)</th>
-                        <th style="width: 16%;" class="number-col">Sub Fair Value ($)</th>
-                        <th style="width: 15%;" class="number-col">FV Excess ($)</th>
-                        <th style="width: 5%;" class="center-col">Action</th>
-                    </tr>
-                </thead>
-                <tbody id="setup-body">
-                    <!-- Dynamic Setup Rows -->
-                </tbody>
-            </table>
+        <div class="meta-info">
+          <span>📋 <span id="intro-meta-q">20 questions</span></span>
+          <span>⏱️ <span id="intro-meta-t">Approximately 4-5 minutes</span></span>
         </div>
 
-        <!-- TAB 2: CONSOLIDATION WORKSHEET -->
-        <div id="tab-worksheet" class="tab-content">
-            <div class="section-toolbar">
-                <h2>Consolidation Workpaper</h2>
-                <button class="btn-primary" onclick="addAccountRow()">+ Add New Account</button>
-            </div>
-            
-            <p style="font-size:0.85rem; color:#718096; margin-bottom:10px;">
-                Worksheet columns for Elimination Entries are automatically driven by entries in the <strong>Journal Entries</strong> tab.
-            </p>
+        <button class="btn" onclick="startAssessment()" id="intro-btn-start">Start Assessment</button>
+      </div>
+    </section>
 
-            <table id="worksheet-table">
-                <thead>
-                    <tr>
-                        <th style="width: 22%;">Account Title</th>
-                        <th style="width: 10%;">Type</th>
-                        <th style="width: 14%;" class="number-col">Parent (BV)</th>
-                        <th style="width: 14%;" class="number-col">Subsidiary (BV)</th>
-                        <th style="width: 12%;" class="number-col">Adjustments Dr.</th>
-                        <th style="width: 12%;" class="number-col">Adjustments Cr.</th>
-                        <th style="width: 12%;" class="number-col">Consolidated</th>
-                        <th style="width: 4%;" class="center-col">Action</th>
-                    </tr>
-                </thead>
-                <tbody id="worksheet-body">
-                    <!-- Dynamic Worksheet Rows -->
-                </tbody>
-                <tfoot>
-                    <tr style="font-weight: bold; background-color: #edf2f7;">
-                        <td colspan="2">TOTALS CONTROL</td>
-                        <td class="number-col" id="tot-parent">0.00</td>
-                        <td class="number-col" id="tot-sub">0.00</td>
-                        <td class="number-col" id="tot-adj-dr">0.00</td>
-                        <td class="number-col" id="tot-adj-cr">0.00</td>
-                        <td class="number-col" id="tot-cons">0.00</td>
-                        <td></td>
-                    </tr>
-                </tfoot>
-            </table>
+    <!-- VIEW 2: QUESTIONNAIRE -->
+    <section id="view-quiz" class="view-section" aria-labelledby="quiz-question-heading">
+      <div class="progress-container">
+        <div class="progress-status">
+          <span id="quiz-progress-text">Question 1 of 20</span>
+          <span id="quiz-progress-percent">5%</span>
         </div>
-
-        <!-- TAB 3: JOURNAL ENTRIES -->
-        <div id="tab-entries" class="tab-content">
-            <div class="section-toolbar">
-                <h2>General Journal & Consolidation Workpaper Entries</h2>
-                <button class="btn-primary" onclick="addNewJournalEntry()">+ Add New Journal Entry</button>
-            </div>
-
-            <p style="font-size:0.85rem; color:#718096; margin-bottom:15px;">
-                Create investment entries on the acquirer's books or Elimination Entry C for the consolidation workpaper.
-            </p>
-
-            <div id="entries-container">
-                <!-- Dynamic Entry Cards -->
-            </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="quiz-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="5" aria-label="Assessment progress"></div>
         </div>
+      </div>
 
-        <!-- TAB 4: T-ACCOUNTS -->
-        <div id="tab-taccounts" class="tab-content">
-            <div class="section-toolbar">
-                <h2>General Ledger - Individual T-Accounts</h2>
-                <button class="btn-secondary" onclick="renderTAccounts()">Refresh T-Accounts</button>
-            </div>
+      <div class="card">
+        <fieldset class="question-fieldset">
+          <legend class="question-legend" id="quiz-question-heading">Question loading...</legend>
+          
+          <div class="likert-scale" id="quiz-options-container" role="radiogroup" aria-labelledby="quiz-question-heading">
+            <!-- Dynamic Likert Options -->
+          </div>
+        </fieldset>
 
-            <p style="font-size:0.85rem; color:#718096;">
-                Visual representation of initial balances and journal entry postings categorized according to normal balance rules.
-            </p>
+        <div class="validation-msg" id="quiz-validation" role="alert">Please select an answer before continuing.</div>
 
-            <div class="t-accounts-grid" id="t-accounts-container">
-                <!-- Dynamic T-Accounts -->
-            </div>
+        <div class="nav-buttons">
+          <button class="btn btn-secondary" id="btn-prev" onclick="previousQuestion()">← Previous</button>
+          <button class="btn" id="btn-next" onclick="nextQuestion()">Next →</button>
         </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: RESULTS DASHBOARD -->
+    <section id="view-results" class="view-section" aria-labelledby="res-header">
+      
+      <!-- Tab Navigation -->
+      <div class="tabs-nav" role="tablist" aria-label="Results tabs">
+        <button class="tab-btn active" id="tab-btn-1" role="tab" aria-selected="true" aria-controls="tab-content-1" onclick="switchTab(1)">Your Results</button>
+        <button class="tab-btn" id="tab-btn-2" role="tab" aria-selected="false" aria-controls="tab-content-2" onclick="switchTab(2)">Understanding Your Pattern</button>
+      </div>
+
+      <!-- TAB 1 CONTENT -->
+      <div id="tab-content-1" role="tabpanel" aria-labelledby="tab-btn-1">
+        <div class="card">
+          <h2 id="res-header">Your Money Relationship Profile</h2>
+          
+          <!-- Dominant Category Box -->
+          <div class="dominant-card">
+            <h3 id="res-dominant-label">Your strongest pattern</h3>
+            <h2 id="res-dominant-title">FINANCIAL VIGILANCE</h2>
+            <p id="res-dominant-desc">Your responses suggest that security, control, and future uncertainty may play an important role in the way you approach money.</p>
+          </div>
+
+          <!-- Horizontal Bar Chart -->
+          <h3 id="res-chart-title" style="margin-top: 32px;">Primary Dimensions Overview</h3>
+          <p id="res-chart-sub" style="font-size: 0.9rem;">Average scores from 1.00 (Low) to 5.00 (Very High)</p>
+          <div class="chart-container" id="chart-container">
+            <!-- Rendered JS Chart -->
+          </div>
+
+          <!-- Methodology & Design Note on Scored Dimensions -->
+          <div style="font-size: 0.88rem; color: var(--text-muted); background: #F1F5F9; padding: 12px 16px; border-radius: var(--radius-sm); margin: 16px 0;" id="res-structure-note">
+            <strong>Note on Scoring:</strong> Questions 1–18 assess primary money relationship patterns, while Questions 19–20 measure Financial Intentionality separately.
+          </div>
+
+          <!-- Personalized Synthesis -->
+          <div class="disclaimer-box" id="res-personalized-text" style="background-color: #F8FAFC; border-color: #64748B; color: var(--text-main);">
+            <!-- Dynamic Synthesis -->
+          </div>
+
+          <!-- Intentionality Indicator -->
+          <div class="card" style="border-left: 6px solid var(--accent-intentionality); background: #FFFBEB; margin-top: 24px;">
+            <h3 id="res-intent-title">Financial Intentionality</h3>
+            <p id="res-intent-desc">This score reflects how strongly your responses suggest that you can separate immediate emotions from important financial decisions and align spending with your priorities.</p>
+            <div style="display: flex; align-items: baseline; gap: 12px; margin-top: 12px;">
+              <span id="res-intent-score" style="font-size: 2rem; font-weight: 700; color: #D97706;">4.2 / 5.0</span>
+              <span id="res-intent-label" style="font-size: 1.1rem; font-weight: 600; color: #B45309;">(Strong)</span>
+            </div>
+          </div>
+
+          <!-- Relational Section -->
+          <div class="relational-card">
+            <h3 id="rel-title">Money Is Relational</h3>
+            <p id="rel-p1">People in the same family may have very different relationships with money. One person may seek security while another seeks freedom, experiences, recognition, or emotional comfort. Differences like these can create financial conflict even when both people have good intentions.</p>
+            <p id="rel-p2" style="font-weight: 600; color: var(--primary); margin-bottom: 0;">Instead of asking, "Who is right about money?" try asking, "What does money mean to each of us?"</p>
+          </div>
+
+          <div class="final-quote" id="final-quote-text">
+            "The goal is not to eliminate emotions from financial decisions. The goal is to recognize them before they make the decision for us."
+          </div>
+
+        </div>
+      </div>
+
+      <!-- TAB 2 CONTENT -->
+      <div id="tab-content-2" role="tabpanel" aria-labelledby="tab-btn-2" style="display: none;">
+        <div class="card">
+          <h2 id="tab2-heading">Understanding Your Pattern</h2>
+          
+          <div id="tab2-details-container">
+            <!-- Rendered Dynamic Pattern Deep Dive -->
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Dashboard Action Buttons -->
+      <div class="actions-group">
+        <button class="btn btn-secondary" onclick="resetAssessment()" id="btn-restart">Retake Assessment</button>
+        <button class="btn" onclick="printResults()" id="btn-print">Print / Save Results</button>
+      </div>
+
+    </section>
+
+    <!-- PRINT VIEW CONTAINER (Full single-page print rendering) -->
+    <div id="print-view-container">
+      <div class="print-header">
+        <h1 id="print-title">What's Your Emotional Relationship With Money?</h1>
+        <p id="print-date" style="font-weight: 600; color: #4A5568;"></p>
+      </div>
+
+      <div class="print-card">
+        <h2 id="print-dominant-label" style="font-size: 1rem; text-transform: uppercase; color: #4A5568;">Your strongest pattern</h2>
+        <h1 id="print-dominant-title" style="font-size: 1.6rem; color: #1E3A8A; margin-bottom: 8px;">FINANCIAL VIGILANCE</h1>
+        <p id="print-dominant-desc" style="font-size: 0.95rem; color: #1A202C;"></p>
+      </div>
+
+      <div class="print-card">
+        <h3 id="print-chart-title" style="font-size: 1.1rem; color: #1E3A8A; margin-bottom: 12px;">Primary Dimensions Overview</h3>
+        <div id="print-chart-container"></div>
+      </div>
+
+      <div class="print-card">
+        <h3 id="print-intent-title" style="font-size: 1.1rem; color: #D97706; margin-bottom: 6px;">Financial Intentionality</h3>
+        <p id="print-intent-desc" style="font-size: 0.9rem; margin-bottom: 8px;"></p>
+        <p style="font-size: 1.2rem; font-weight: bold; color: #D97706;"><span id="print-intent-score">4.2 / 5.0</span> <span id="print-intent-label">(Strong)</span></p>
+      </div>
+
+      <div class="print-card">
+        <h3 style="font-size: 1.1rem; color: #1E3A8A; margin-bottom: 8px;">Personalized Synthesis</h3>
+        <div id="print-synthesis-text" style="font-size: 0.95rem;"></div>
+      </div>
+
+      <div class="print-card">
+        <h2 id="print-tab2-heading" style="font-size: 1.2rem; color: #1E3A8A; margin-bottom: 12px;">Pattern Details & Practical Reflection</h2>
+        <div id="print-tab2-container"></div>
+      </div>
+
+      <div class="print-card">
+        <h3 id="print-rel-title" style="font-size: 1.1rem; color: #1E3A8A; margin-bottom: 8px;">Money Is Relational</h3>
+        <p id="print-rel-p1" style="font-size: 0.9rem; margin-bottom: 8px;"></p>
+        <p id="print-rel-p2" style="font-size: 0.95rem; font-weight: bold; color: #1E3A8A;"></p>
+      </div>
+
+      <div style="text-align: center; font-style: italic; font-weight: 600; margin-top: 20px; font-size: 0.95rem;" id="print-final-quote"></div>
     </div>
 
-    <script>
-        // GLOBAL STATE
-        let accounts = [];
-        let journalEntries = [];
+  </main>
 
-        // ACCOUNT TYPES & NORMAL BALANCES
-        const accountTypes = {
-            'A': { name: 'Asset (A)', normal: 'Dr' },
-            'L': { name: 'Liability (L)', normal: 'Cr' },
-            'E': { name: 'Equity (E)', normal: 'Cr' },
-            'R': { name: 'Revenue (R)', normal: 'Cr' },
-            'Ex': { name: 'Expense (Ex)', normal: 'Dr' }
-        };
+  <!-- Footer & Privacy Disclaimers -->
+  <footer>
+    <p id="privacy-stmt">Your responses are processed locally in your browser and are not sent to a server.</p>
+    <div style="margin-top: 10px;" id="about-stmt">
+      <strong>About this assessment:</strong> This educational assessment was developed as a reflection tool for a personal and family finance presentation. Its four primary dimensions are informed by research on money scripts, including the concepts of Money Avoidance, Money Worship, Money Status, and Money Vigilance. The assessment itself is an original adaptation and should not be interpreted as a validated psychological instrument.
+    </div>
+  </footer>
 
-        window.onload = function() {
-            loadDefaultCase();
-        };
+  <!-- ==========================================
+     APPLICATION JAVASCRIPT LOGIC
+     ========================================== -->
+  <script>
+    /* ------------------------------------------
+       1. DATA STRUCTURES & TRANSLATIONS
+       ------------------------------------------ */
+    const translations = {
+      en: {
+        title: "What's Your Emotional Relationship With Money?",
+        subtitle: "An interactive self-assessment about emotions, beliefs, and financial behavior.",
+        introP1: "This is not a test of how financially knowledgeable you are. There are no right or wrong answers. The purpose is to help you recognize how emotions and beliefs may influence financial decisions.",
+        introDisclaimer: "This assessment is an educational reflection tool. It is not a psychological diagnosis, financial assessment, or clinically validated test.",
+        metaQ: "20 questions",
+        metaT: "Approximately 4-5 minutes",
+        btnStart: "Start Assessment",
+        progressText: "Question {current} of {total}",
+        progressAria: "Assessment progress: Question {current} of {total}",
+        validationMsg: "Please select an answer before continuing.",
+        btnPrev: "← Previous",
+        btnNext: "Next →",
+        btnResults: "See My Results",
+        tab1: "Your Results",
+        tab2: "Understanding Your Pattern",
+        resHeader: "Your Money Relationship Profile",
+        resDominantLabel: "Your strongest pattern",
+        resDominantLabelPlural: "Your strongest patterns",
+        resNoDominantTitle: "NO DOMINANT PATTERN",
+        resNoDominantDesc: "Your responses do not show a clearly dominant financial pattern. This may reflect a relatively balanced profile, or it may mean that you were uncertain about some of the statements.",
+        resDominantPluralDesc: "Your responses show two or more closely related strongest patterns.",
+        chartTitle: "Primary Dimensions Overview",
+        chartSub: "Average scores from 1.00 (Low) to 5.00 (Very High)",
+        structureNote: "<strong>Note on Scoring:</strong> Questions 1–18 assess primary money relationship patterns, while Questions 19–20 measure Financial Intentionality separately.",
+        intentTitle: "Financial Intentionality",
+        intentDesc: "This score reflects how strongly your responses suggest that you can separate immediate emotions from important financial decisions and align spending with your priorities.",
+        relTitle: "Money Is Relational",
+        relP1: "People in the same family may have very different relationships with money. One person may seek security while another seeks freedom, experiences, recognition, or emotional comfort. Differences like these can create financial conflict even when both people have good intentions.",
+        relP2: "Instead of asking, 'Who is right about money?' try asking, 'What does money mean to each of us?'",
+        finalQuote: "The goal is not to eliminate emotions from financial decisions. The goal is to recognize them before they make the decision for us.",
+        btnRestart: "Retake Assessment",
+        btnPrint: "Print / Save Results",
+        privacyStmt: "Your responses are processed locally in your browser and are not sent to a server.",
+        aboutStmt: "<strong>About this assessment:</strong> This educational assessment was developed as a reflection tool for a personal and family finance presentation. Its four primary dimensions are informed by research on money scripts, including the concepts of Money Avoidance, Money Worship, Money Status, and Money Vigilance. The assessment itself is an original adaptation and should not be interpreted as a validated psychological instrument.",
+        likert: [
+          "1 - Strongly disagree",
+          "2 - Disagree",
+          "3 - Neither agree nor disagree",
+          "4 - Agree",
+          "5 - Strongly agree"
+        ],
+        categories: {
+          avoidance: {
+            name: "Financial Avoidance",
+            subtitle: "If I don't look at it, I don't have to deal with it.",
+            desc: "Your responses suggest a tendency to avoid or postpone financial situations that create discomfort.",
+            summaryDesc: "security, control, or discomfort management may lead you to postpone facing financial details.",
+            strengths: [
+              "You may avoid allowing money to dominate your life.",
+              "You may recognize that financial problems should not define your personal identity."
+            ],
+            risks: [
+              "Small financial problems may become larger when they are postponed.",
+              "Avoidance can make financial decisions feel more difficult than they actually are."
+            ],
+            reflection: "Am I avoiding the problem because I cannot solve it, or because I do not want to face how it makes me feel?",
+            experiment: "Schedule a 15-minute weekly money check-in. The goal is not to solve everything; it is simply to look."
+          },
+          emotional: {
+            name: "Money as an Emotional Solution",
+            subtitle: "If I had more money, I would feel better.",
+            desc: "Your responses suggest that money, spending, or financial security may sometimes become connected to emotional well-being.",
+            summaryDesc: "spending or money may sometimes be relied upon to regulate mood or provide emotional relief.",
+            strengths: [
+              "You may recognize the emotional value of experiences and spending.",
+              "You may understand that money can contribute to comfort and quality of life."
+            ],
+            risks: [
+              "Spending can become a way of regulating emotions.",
+              "Money may be expected to solve problems that money cannot solve."
+            ],
+            reflection: "Am I buying what I need, or am I trying to buy how I want to feel?",
+            experiment: "Before an unplanned purchase, wait 24 hours and ask: 'What emotion am I experiencing right now?'"
+          },
+          status: {
+            name: "Money & Status",
+            subtitle: "What I have can communicate who I am.",
+            desc: "Your responses suggest that social comparison, success, or recognition may influence some financial decisions.",
+            summaryDesc: "social comparison, recognition, or communicating achievement may influence some financial decisions.",
+            strengths: [
+              "You may be ambitious and motivated by achievement.",
+              "You may value quality and progress."
+            ],
+            risks: [
+              "Financial decisions may become influenced by other people's expectations.",
+              "Maintaining an image can create financial pressure."
+            ],
+            reflection: "If nobody could see this financial decision, would I still make the same choice?",
+            experiment: "Before a discretionary purchase, ask: 'Would I still want this if nobody else knew I owned it?'"
+          },
+          vigilance: {
+            name: "Financial Vigilance",
+            subtitle: "I need to stay prepared because something could go wrong.",
+            desc: "Your responses suggest a strong orientation toward financial security, control, and future risk.",
+            summaryDesc: "security, control, and future uncertainty play a central role in how you approach money.",
+            strengths: [
+              "Planning & Prudence",
+              "Risk awareness & Financial discipline"
+            ],
+            risks: [
+              "Excessive worry",
+              "Difficulty enjoying money & Guilt associated with reasonable spending"
+            ],
+            reflection: "Am I managing my money prudently, or am I allowing fear to manage my money?",
+            experiment: "Create a specific amount of guilt-free discretionary spending within your financial plan."
+          }
+        },
+        intentionalityLevels: {
+          developing: "Developing",
+          moderate: "Moderate",
+          strong: "Strong",
+          veryStrong: "Very Strong"
+        },
+        tab2Ask: "Ask yourself",
+        tab2Experiment: "One practical experiment"
+      },
+      es: {
+        title: "¿Cuál es tu relación emocional con el dinero?",
+        subtitle: "Una autoevaluación interactiva sobre emociones, creencias y comportamiento financiero.",
+        introP1: "Esto no es una prueba de cuánto sabes de finanzas. No existen respuestas correctas o incorrectas. El objetivo es ayudarte a reconocer cómo tus emociones y creencias pueden influir en tus decisiones financieras.",
+        introDisclaimer: "Esta evaluación es una herramienta educativa de reflexión. No es un diagnóstico psicológico, una evaluación financiera ni una prueba clínicamente validada.",
+        metaQ: "20 preguntas",
+        metaT: "Aproximadamente 4-5 minutos",
+        btnStart: "Comenzar evaluación",
+        progressText: "Pregunta {current} de {total}",
+        progressAria: "Progreso de la evaluación: Pregunta {current} de {total}",
+        validationMsg: "Selecciona una respuesta antes de continuar.",
+        btnPrev: "← Anterior",
+        btnNext: "Siguiente →",
+        btnResults: "Ver mis resultados",
+        tab1: "Mis resultados",
+        tab2: "Comprender mi patrón",
+        resHeader: "Tu perfil de relación con el dinero",
+        resDominantLabel: "Tu patrón más marcado",
+        resDominantLabelPlural: "Tus patrones más marcados",
+        resNoDominantTitle: "SIN PATRÓN DOMINANTE",
+        resNoDominantDesc: "Tus respuestas no muestran un patrón financiero claramente dominante. Esto puede reflejar un perfil relativamente equilibrado o simplemente indicar que algunas afirmaciones no describieron claramente tu experiencia.",
+        resDominantPluralDesc: "Tus respuestas muestran dos o más patrones principales estrechamente relacionados.",
+        chartTitle: "Visión general de dimensiones",
+        chartSub: "Puntaje promedio de 1.00 (Bajo) a 5.00 (Muy alto)",
+        structureNote: "<strong>Nota sobre la puntuación:</strong> Las preguntas 1–18 evalúan los patrones principales de relación con el dinero, mientras que las preguntas 19–20 miden la Intencionalidad Financiera por separado.",
+        intentTitle: "Intencionalidad financiera",
+        intentDesc: "Este puntaje refleja qué tan fuertemente tus respuestas sugieren que puedes separar las emociones inmediatas de las decisiones financieras importantes y alinear tus gastos con tus prioridades.",
+        relTitle: "El dinero también es relacional",
+        relP1: "Las personas de una misma familia pueden tener relaciones muy diferentes con el dinero. Una persona puede buscar seguridad mientras que otra busca libertad, experiencias, reconocimiento o bienestar emocional. Diferencias como estas pueden generar conflictos financieros incluso cuando ambas personas tienen buenas intenciones.",
+        relP2: "En lugar de preguntar '¿Quién tiene razón sobre el dinero?', intenta preguntar '¿Qué significa el dinero para cada uno de nosotros?'",
+        finalQuote: "El objetivo no es eliminar las emociones de nuestras decisiones financieras. El objetivo es reconocerlas antes de que ellas tomen la decisión por nosotros.",
+        btnRestart: "Repetir evaluación",
+        btnPrint: "Imprimir / Guardar resultados",
+        privacyStmt: "Tus respuestas se procesan localmente en tu navegador y no se envían a un servidor.",
+        aboutStmt: "<strong>Sobre esta evaluación:</strong> Esta evaluación educativa fue desarrollada como una herramienta de reflexión para una presentación sobre finanzas personales y familiares. Sus cuatro dimensiones principales están inspiradas en investigaciones sobre las creencias y patrones relacionados con el dinero, incluyendo los conceptos de evitación del dinero, dinero como fuente de bienestar, estatus asociado al dinero y vigilancia financiera. La evaluación en sí es una adaptación original y no debe interpretarse como un instrumento psicológico validado.",
+        likert: [
+          "1 - Totalmente en desacuerdo",
+          "2 - En desacuerdo",
+          "3 - Ni de acuerdo ni en desacuerdo",
+          "4 - De acuerdo",
+          "5 - Totalmente de acuerdo"
+        ],
+        categories: {
+          avoidance: {
+            name: "Evitación financiera",
+            subtitle: "Si no lo miro, quizá no tenga que enfrentarlo.",
+            desc: "Tus respuestas sugieren una tendencia a evitar o posponer situaciones financieras que te generan incomodidad.",
+            summaryDesc: "la incomodidad o el estrés financiero pueden llevarte a posponer la revisión de tus cuentas o decisiones.",
+            strengths: [
+              "Evitas que el dinero domine por completo tu vida.",
+              "Reconoces que los problemas financieros no definen tu identidad personal."
+            ],
+            risks: [
+              "Los pequeños problemas financieros pueden crecer al ser pospuestos.",
+              "La evitación puede hacer que las decisiones financieras parezcan más difíciles de lo que realmente son."
+            ],
+            reflection: "¿Estoy evitando el problema porque no puedo resolverlo o porque no quiero enfrentar lo que me hace sentir?",
+            experiment: "Agenda un chequeo financiero semanal de 15 minutos. El objetivo no es resolver todo, sino simplemente mirar."
+          },
+          emotional: {
+            name: "El dinero como solución emocional",
+            subtitle: "Si tuviera más dinero, me sentiría mejor.",
+            desc: "Tus respuestas sugieren que el dinero, el gasto o la seguridad financiera pueden estar vinculados a tu bienestar emocional.",
+            summaryDesc: "el gasto o el dinero a veces se utilizan para regular las emociones o buscar alivio inmediato.",
+            strengths: [
+              "Reconoces el valor emocional de las experiencias y las compras.",
+              "Entiendes que el dinero puede contribuir al bienestar y la calidad de vida."
+            ],
+            risks: [
+              "El gasto puede convertirse en una forma de regular estados de ánimo.",
+              "Se puede esperar que el dinero resuelva problemas que el dinero no puede resolver."
+            ],
+            reflection: "¿Estoy comprando lo que necesito o estoy intentando comprar cómo quiero sentirme?",
+            experiment: "Antes de una compra no planeada, espera 24 horas y pregúntate: '¿Qué emoción estoy sintiendo en este momento?'"
+          },
+          status: {
+            name: "Dinero y estatus",
+            subtitle: "Lo que tengo comunica quién soy.",
+            desc: "Tus respuestas sugieren que la comparación social, el éxito o el reconocimiento pueden influir en algunas decisiones financieras.",
+            summaryDesc: "la comparación social, el reconocimiento o demostrar logros influyen en tus decisiones de gasto.",
+            strengths: [
+              "Muestras ambición y motivación por el logro.",
+              "Valoras la calidad, el progreso y la superación personal."
+            ],
+            risks: [
+              "Las decisiones financieras pueden verse influenciadas por las expectativas de los demás.",
+              "Mantener una imagen puede generar presión financiera innecesaria."
+            ],
+            reflection: "Si nadie pudiera ver esta decisión financiera, ¿tomaría la misma elección?",
+            experiment: "Antes de un gasto discrecional, pregúntate: '¿Aún desearía esto si nadie más supiera que lo poseo?'"
+          },
+          vigilance: {
+            name: "Vigilancia financiera",
+            subtitle: "Debo estar preparado porque algo podría salir mal.",
+            desc: "Tus respuestas sugieren una fuerte orientación hacia la seguridad financiera, el control y la gestión de riesgos futuros.",
+            summaryDesc: "la búsqueda de seguridad, el control y la cautela ante el futuro juegan un papel central en tu relación con el dinero.",
+            strengths: [
+              "Planificación y prudencia",
+              "Conciencia del riesgo y disciplina financiera"
+            ],
+            risks: [
+              "Preocupación excesiva",
+              "Dificultad para disfrutar del dinero y culpa asociada a gastos razonables"
+            ],
+            reflection: "¿Estoy gestionando mi dinero con prudencia o estoy dejando que el miedo gestione mi dinero?",
+            experiment: "Asigna una cantidad específica de gasto discrecional 'libre de culpa' dentro de tu plan financiero."
+          }
+        },
+        intentionalityLevels: {
+          developing: "En desarrollo",
+          moderate: "Moderado",
+          strong: "Fuerte",
+          veryStrong: "Muy fuerte"
+        },
+        tab2Ask: "Pregúntate",
+        tab2Experiment: "Un experimento práctico"
+      }
+    };
 
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-
-            document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add('active');
-            document.getElementById(tabId).classList.add('active');
-
-            if (tabId === 'tab-setup') renderSetup();
-            if (tabId === 'tab-worksheet') renderWorksheet();
-            if (tabId === 'tab-taccounts') renderTAccounts();
+    /**
+     * Safe Translation Helper with Fallback and Console Warning
+     */
+    function t(keyPath) {
+      const keys = keyPath.split('.');
+      
+      // 1. Try selected language
+      let res = translations[currentLang];
+      for (const k of keys) {
+        if (res && res[k] !== undefined) {
+          res = res[k];
+        } else {
+          res = undefined;
+          break;
         }
+      }
 
-        // NUMBER FORMATTING HELPERS
-        function formatNumber(num) {
-            if (isNaN(num) || num === null || num === undefined) return '0.00';
-            return parseFloat(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      if (res !== undefined) return res;
+
+      // 2. Console warning for missing key
+      console.warn(`[Translation Missing] Key "${keyPath}" not found in language "${currentLang}". Falling back to English.`);
+
+      // 3. Fallback to English
+      let fallback = translations['en'];
+      for (const k of keys) {
+        if (fallback && fallback[k] !== undefined) {
+          fallback = fallback[k];
+        } else {
+          return keyPath; // Return key path string as ultimate safety net
         }
+      }
+      return fallback;
+    }
 
-        function formatInput(val) {
-            if (val === '' || val === undefined || val === null) return '';
-            let clean = val.toString().replace(/,/g, '');
-            let num = parseFloat(clean);
-            if (isNaN(num)) return '';
-            return num.toLocaleString('en-US');
+    /*
+     * Question 10 Categorization Note:
+     * Question 10 ("Having enough money is one of the main conditions I need in order to feel secure or happy.")
+     * contains elements of both emotional well-being ("happy") and risk management ("secure").
+     * In this standardized implementation, it remains categorized under Emotional Money (Money Worship script proxy)
+     * because it measures the core belief that external financial accumulation is a prerequisite for internal peace.
+     */
+    const questions = [
+      { id: 1, category: "avoidance", en: "When my finances are not going well, I prefer not to look at my accounts.", es: "Cuando mis finanzas no están bien, prefiero no revisar mis cuentas." },
+      { id: 2, category: "emotional", en: "Sometimes I buy something because I need to feel better, even though I had not planned to buy it.", es: "A veces compro algo porque necesito sentirme mejor, aunque no lo hubiera planeado." },
+      { id: 3, category: "status", en: "I worry that other people may think I am less successful if I cannot afford certain things.", es: "Me preocupa que otras personas puedan pensar que tengo menos éxito si no puedo permitirme ciertas cosas." },
+      { id: 4, category: "vigilance", en: "I find it difficult to spend money if I am not completely sure that I will be able to save or recover it later.", es: "Me resulta difícil gastar dinero si no estoy completamente seguro de que podré recuperarlo o ahorrarlo nuevamente." },
+      { id: 5, category: "emotional", en: "When I think about my financial problems, I tend to feel that I would be much happier if I had more money.", es: "Cuando pienso en mis problemas financieros, tiendo a sentir que sería mucho más feliz si tuviera más dinero." },
+      { id: 6, category: "avoidance", en: "I avoid talking about financial problems because those conversations make me feel tense or uncomfortable.", es: "Evito hablar de problemas financieros porque esas conversaciones me generan tensión o incomodidad." },
+      { id: 7, category: "emotional", en: "Sometimes I spend more than I intended because I think, 'I deserve it.'", es: "A veces gasto más de lo previsto porque pienso: 'Me lo merezco.'" },
+      { id: 8, category: "status", en: "I compare myself financially with other people.", es: "Me comparo financieramente con otras personas." },
+      { id: 9, category: "vigilance", en: "I find it difficult to enjoy spending money, even when I know I can afford it.", es: "Me cuesta disfrutar de un gasto, incluso cuando sé que puedo permitírmelo." },
+      { id: 10, category: "emotional", en: "Having enough money is one of the main conditions I need in order to feel secure or happy.", es: "Tener suficiente dinero es una de las principales condiciones que necesito para sentirme seguro o feliz." },
+      { id: 11, category: "avoidance", en: "When I have a debt or an outstanding bill, I tend to postpone dealing with it.", es: "Cuando tengo una deuda o una cuenta pendiente, tiendo a posponer el momento de enfrentarla." },
+      { id: 12, category: "emotional", en: "When I am stressed, sad, bored, or frustrated, the way I spend money can change.", es: "Cuando estoy estresado, triste, aburrido o frustrado, mi forma de gastar puede cambiar." },
+      { id: 13, category: "status", en: "Sometimes I buy something because I do not want to feel that I am the only one who cannot afford it.", es: "En ocasiones compro algo porque no quiero sentir que soy el único que no puede permitírselo." },
+      { id: 14, category: "vigilance", en: "I find it difficult to spend money on things I enjoy because I always think about what might happen in the future.", es: "Me cuesta gastar dinero en cosas que disfruto porque siempre pienso en lo que podría pasar en el futuro." },
+      { id: 15, category: "emotional", en: "I believe that earning much more money would solve an important part of my personal problems.", es: "Creo que ganar mucho más dinero solucionaría una parte importante de mis problemas personales." },
+      { id: 16, category: "avoidance", en: "When I receive financial information I do not understand, I prefer to avoid it rather than seek help or learn about it.", es: "Cuando recibo información financiera que no entiendo, prefiero evitarla antes que buscar ayuda o aprender sobre ella." },
+      { id: 17, category: "status", en: "Sometimes I use purchases, travel, restaurants, clothing, technology, or other things to feel that I am progressing or being successful.", es: "En ocasiones utilizo compras, viajes, restaurantes, ropa, tecnología u otras cosas para sentir que estoy progresando o teniendo éxito." },
+      { id: 18, category: "vigilance", en: "I worry a lot about making a financial mistake.", es: "Me preocupa mucho cometer un error financiero." },
+      { id: 19, category: "intentionality", en: "When I make important financial decisions, I try to separate what I feel at the moment from what I actually need to do.", es: "Cuando tomo decisiones financieras importantes, trato de separar lo que siento en ese momento de lo que realmente necesito hacer." },
+      { id: 20, category: "intentionality", en: "I can spend money on something I consider important without feeling guilty, as long as it aligns with my financial priorities.", es: "Puedo gastar dinero en algo que considero importante sin sentir culpa, siempre que esté de acuerdo con mis prioridades financieras." }
+    ];
+
+    /* ------------------------------------------
+       2. STATE MANAGEMENT
+       ------------------------------------------ */
+    let currentLang = 'en';
+    let currentQuestionIndex = 0;
+    let userAnswers = {}; // Preserved across language switches
+    let calculatedResults = null; // Preserved across language switches
+
+    /* ------------------------------------------
+       3. LANGUAGE ENGINE & STATE PRESERVATION
+       ------------------------------------------ */
+    function setLanguage(lang) {
+      currentLang = lang;
+      
+      // Update toggle buttons UI
+      document.getElementById('btn-lang-en').classList.toggle('active', lang === 'en');
+      document.getElementById('btn-lang-es').classList.toggle('active', lang === 'es');
+      document.documentElement.lang = lang;
+
+      // Update static view text using safe translation helper
+      document.getElementById('intro-title').innerText = t('title');
+      document.getElementById('intro-subtitle').innerText = t('subtitle');
+      document.getElementById('intro-p1').innerText = t('introP1');
+      document.getElementById('intro-disclaimer').innerText = t('introDisclaimer');
+      document.getElementById('intro-meta-q').innerText = t('metaQ');
+      document.getElementById('intro-meta-t').innerText = t('metaT');
+      document.getElementById('intro-btn-start').innerText = t('btnStart');
+
+      document.getElementById('quiz-validation').innerText = t('validationMsg');
+      document.getElementById('btn-prev').innerText = t('btnPrev');
+      updateNextButtonLabel();
+
+      document.getElementById('tab-btn-1').innerText = t('tab1');
+      document.getElementById('tab-btn-2').innerText = t('tab2');
+      document.getElementById('res-header').innerText = t('resHeader');
+      document.getElementById('res-chart-title').innerText = t('chartTitle');
+      document.getElementById('res-chart-sub').innerText = t('chartSub');
+      document.getElementById('res-structure-note').innerHTML = t('structureNote');
+      document.getElementById('res-intent-title').innerText = t('intentTitle');
+      document.getElementById('res-intent-desc').innerText = t('intentDesc');
+      document.getElementById('rel-title').innerText = t('relTitle');
+      document.getElementById('rel-p1').innerText = t('relP1');
+      document.getElementById('rel-p2').innerText = t('relP2');
+      document.getElementById('final-quote-text').innerText = t('finalQuote');
+      document.getElementById('btn-restart').innerText = t('btnRestart');
+      document.getElementById('btn-print').innerText = t('btnPrint');
+      document.getElementById('privacy-stmt').innerText = t('privacyStmt');
+      document.getElementById('about-stmt').innerHTML = t('aboutStmt');
+      document.getElementById('tab2-heading').innerText = t('tab2');
+
+      // Refresh currently active section without altering user state
+      if (document.getElementById('view-quiz').classList.contains('active')) {
+        renderQuestion(false); // Do not steal focus during language change
+      } else if (document.getElementById('view-results').classList.contains('active')) {
+        renderResults();
+      }
+    }
+
+    function updateNextButtonLabel() {
+      const btnNext = document.getElementById('btn-next');
+      if (currentQuestionIndex === questions.length - 1) {
+        btnNext.innerText = t('btnResults');
+      } else {
+        btnNext.innerText = t('btnNext');
+      }
+    }
+
+    /* ------------------------------------------
+       4. ASSESSMENT NAVIGATION & QUIZ LOGIC
+       ------------------------------------------ */
+    function startAssessment() {
+      switchView('view-quiz');
+      currentQuestionIndex = 0;
+      renderQuestion(true);
+    }
+
+    function switchView(viewId) {
+      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+      document.getElementById(viewId).classList.add('active');
+      window.scrollTo(0, 0);
+    }
+
+    function renderQuestion(shouldFocus = true) {
+      const q = questions[currentQuestionIndex];
+
+      // Progress calculation
+      const currentNum = currentQuestionIndex + 1;
+      const totalNum = questions.length;
+      const pct = Math.round((currentNum / totalNum) * 100);
+
+      const progTextEl = document.getElementById('quiz-progress-text');
+      const progBarEl = document.getElementById('quiz-progress-bar');
+      
+      progTextEl.innerText = t('progressText').replace('{current}', currentNum).replace('{total}', totalNum);
+      document.getElementById('quiz-progress-percent').innerText = `${pct}%`;
+      
+      progBarEl.style.width = `${pct}%`;
+      progBarEl.setAttribute('aria-valuenow', pct);
+      progBarEl.setAttribute('aria-label', t('progressAria').replace('{current}', currentNum).replace('{total}', totalNum));
+
+      // Question legend text
+      const legendEl = document.getElementById('quiz-question-heading');
+      legendEl.innerText = `${q.id}. ${q[currentLang]}`;
+      
+      document.getElementById('quiz-validation').style.display = 'none';
+
+      // Render Options
+      const optionsContainer = document.getElementById('quiz-options-container');
+      optionsContainer.innerHTML = '';
+
+      const likertLabels = t('likert');
+      likertLabels.forEach((label, idx) => {
+        const val = idx + 1;
+        const isSelected = userAnswers[q.id] === val;
+
+        const optLabel = document.createElement('label');
+        optLabel.className = `likert-option ${isSelected ? 'selected' : ''}`;
+        
+        optLabel.innerHTML = `
+          <input type="radio" name="question_${q.id}" value="${val}" ${isSelected ? 'checked' : ''} onchange="selectAnswer(${q.id}, ${val})" onkeydown="handleRadioKeyDown(event, ${q.id}, ${val})">
+          <span class="likert-label">${label}</span>
+        `;
+        optionsContainer.appendChild(optLabel);
+      });
+
+      // Accessible Focus Management
+      if (shouldFocus) {
+        legendEl.setAttribute('tabindex', '-1');
+        legendEl.focus();
+      }
+
+      // Update Navigation State
+      document.getElementById('btn-prev').style.visibility = currentQuestionIndex === 0 ? 'hidden' : 'visible';
+      updateNextButtonLabel();
+    }
+
+    function handleRadioKeyDown(event, qId, val) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        selectAnswer(qId, val);
+      }
+    }
+
+    function selectAnswer(qId, value) {
+      userAnswers[qId] = value;
+      document.getElementById('quiz-validation').style.display = 'none';
+      
+      // Update UI selection highlight
+      const options = document.querySelectorAll('.likert-option');
+      options.forEach(opt => {
+        const radio = opt.querySelector('input');
+        if (radio && parseInt(radio.value) === value) {
+          opt.classList.add('selected');
+          radio.checked = true;
+        } else {
+          opt.classList.remove('selected');
         }
+      });
+    }
 
-        function parseInput(val) {
-            if (!val) return 0;
-            let clean = val.toString().replace(/,/g, '');
-            let num = parseFloat(clean);
-            return isNaN(num) ? 0 : num;
+    function nextQuestion() {
+      const q = questions[currentQuestionIndex];
+      if (!userAnswers[q.id]) {
+        document.getElementById('quiz-validation').style.display = 'block';
+        return;
+      }
+
+      if (currentQuestionIndex < questions.length - 1) {
+        currentQuestionIndex++;
+        renderQuestion(true);
+      } else {
+        calculateResults();
+        switchView('view-results');
+        renderResults();
+      }
+    }
+
+    function previousQuestion() {
+      if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        renderQuestion(true);
+      }
+    }
+
+    /* ------------------------------------------
+       5. SCORING ENGINE & CALCULATIONS
+       ------------------------------------------ */
+    function calculateResults() {
+      const totals = { avoidance: 0, emotional: 0, status: 0, vigilance: 0, intentionality: 0 };
+      const counts = { avoidance: 4, emotional: 6, status: 4, vigilance: 4, intentionality: 2 };
+
+      questions.forEach(q => {
+        const score = userAnswers[q.id] || 1;
+        totals[q.category] += score;
+      });
+
+      // Normalized category averages
+      const averages = {
+        avoidance: totals.avoidance / counts.avoidance,
+        emotional: totals.emotional / counts.emotional,
+        status: totals.status / counts.status,
+        vigilance: totals.vigilance / counts.vigilance,
+        intentionality: totals.intentionality / counts.intentionality
+      };
+
+      const primaryCats = ['avoidance', 'emotional', 'status', 'vigilance'];
+      
+      // Sort primary categories descending
+      const sorted = primaryCats.map(cat => ({ key: cat, score: averages[cat] }))
+                                .sort((a, b) => b.score - a.score);
+
+      const highest = sorted[0];
+      const secondHighest = sorted[1];
+      const lowest = sorted[sorted.length - 1];
+
+      let dominantState = "single"; // "single", "tied", "none"
+      let dominant = [];
+
+      /*
+       * Rule C — No meaningful dominant pattern
+       * Triggered when highest primary average <= 3.25 AND (highest - lowest) <= 0.25
+       */
+      if (highest.score <= 3.25 && (highest.score - lowest.score) <= 0.25) {
+        dominantState = "none";
+        dominant = [];
+      } 
+      /*
+       * Rule B — Two or more closely related patterns (proximity <= 0.25)
+       */
+      else if ((highest.score - secondHighest.score) <= 0.25) {
+        dominantState = "tied";
+        dominant = sorted.filter(item => (highest.score - item.score) <= 0.25).map(item => item.key);
+      } 
+      /*
+       * Rule A — Clear dominant pattern (highest > second_highest + 0.25)
+       */
+      else {
+        dominantState = "single";
+        dominant = [highest.key];
+      }
+
+      calculatedResults = { totals, averages, dominant, dominantState };
+    }
+
+    /* ------------------------------------------
+       6. RESULTS DISPLAY & RENDERING
+       ------------------------------------------ */
+    function renderResults() {
+      if (!calculatedResults) return;
+
+      const { averages, dominant, dominantState } = calculatedResults;
+
+      // Update Dominant Card
+      const domLabelEl = document.getElementById('res-dominant-label');
+      const domTitleEl = document.getElementById('res-dominant-title');
+      const domDescEl = document.getElementById('res-dominant-desc');
+
+      if (dominantState === "none") {
+        domLabelEl.innerText = t('resDominantLabel');
+        domTitleEl.innerText = t('resNoDominantTitle');
+        domDescEl.innerText = t('resNoDominantDesc');
+      } else if (dominantState === "tied") {
+        domLabelEl.innerText = t('resDominantLabelPlural');
+        domTitleEl.innerText = dominant.map(c => t(`categories.${c}.name`).toUpperCase()).join(" & ");
+        domDescEl.innerText = t('resDominantPluralDesc');
+      } else {
+        const mainCat = dominant[0];
+        domLabelEl.innerText = t('resDominantLabel');
+        domTitleEl.innerText = t(`categories.${mainCat}.name`).toUpperCase();
+        domDescEl.innerText = t(`categories.${mainCat}.desc`);
+      }
+
+      // Render Bar Chart
+      renderChart('chart-container', averages);
+
+      // Render Personalized Synthesis Text
+      renderSynthesis(averages, dominant, dominantState);
+
+      // Render Intentionality Score
+      const intScore = averages.intentionality.toFixed(1);
+      document.getElementById('res-intent-score').innerText = `${intScore} / 5.0`;
+      
+      let levelKey = 'developing';
+      if (averages.intentionality >= 4.25) levelKey = 'veryStrong';
+      else if (averages.intentionality >= 3.50) levelKey = 'strong';
+      else if (averages.intentionality >= 2.50) levelKey = 'moderate';
+
+      document.getElementById('res-intent-label').innerText = `(${t(`intentionalityLevels.${levelKey}`)})`;
+
+      // Render Tab 2 Details & Print View
+      renderTab2('tab2-details-container', dominant, dominantState);
+      preparePrintView();
+    }
+
+    function renderChart(containerId, averages) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+
+      const categoriesConfig = [
+        { key: 'avoidance', color: 'var(--accent-avoidance)' },
+        { key: 'emotional', color: 'var(--accent-emotional)' },
+        { key: 'status', color: 'var(--accent-status)' },
+        { key: 'vigilance', color: 'var(--accent-vigilance)' }
+      ];
+
+      categoriesConfig.forEach(cat => {
+        const score = averages[cat.key];
+        const pct = ((score / 5.0) * 100).toFixed(1);
+
+        const row = document.createElement('div');
+        row.className = 'chart-row';
+        row.innerHTML = `
+          <div class="chart-label-group">
+            <span>${t(`categories.${cat.key}.name`)}</span>
+            <span>${score.toFixed(1)} / 5.0</span>
+          </div>
+          <div class="chart-bar-bg">
+            <div class="chart-bar-fill" style="width: ${pct}%; background-color: ${cat.color};"></div>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function renderSynthesis(averages, dominant, dominantState) {
+      let levelKey = 'developing';
+      if (averages.intentionality >= 4.25) levelKey = 'veryStrong';
+      if (averages.intentionality >= 3.50) levelKey = 'strong';
+      else if (averages.intentionality >= 2.50) levelKey = 'moderate';
+
+      const intLevelStr = t(`intentionalityLevels.${levelKey}`);
+
+      let summaryText = "";
+      if (dominantState === "none") {
+        if (currentLang === 'es') {
+          summaryText = `Tus respuestas indican un perfil <strong>equilibrado sin un patrón claramente dominante</strong>. Tu nivel de Intencionalidad Financiera es <strong>${intLevelStr}</strong>, lo que refleja tu capacidad para distanciarte de impulsos emocionales al tomar decisiones.`;
+        } else {
+          summaryText = `Your responses suggest a <strong>balanced profile with no single dominant pattern</strong>. Your Financial Intentionality level is <strong>${intLevelStr}</strong>, reflecting your capacity to step back from emotional impulses when making monetary decisions.`;
         }
-
-        function handleInputFormatting(inputElement, callback) {
-            let cursorPosition = inputElement.selectionStart;
-            let originalLength = inputElement.value.length;
-            
-            let num = parseInput(inputElement.value);
-            inputElement.value = inputElement.value ? formatInput(num) : '';
-            
-            let newLength = inputElement.value.length;
-            cursorPosition = cursorPosition + (newLength - originalLength);
-            inputElement.setSelectionRange(cursorPosition, cursorPosition);
-            
-            callback(num);
+      } else {
+        const domNames = dominant.map(c => t(`categories.${c}.name`)).join(" & ");
+        if (currentLang === 'es') {
+          summaryText = `Tus respuestas sugieren que tu patrón más marcado corresponde a <strong>${domNames}</strong>, mientras que tu nivel de Intencionalidad Financiera es <strong>${intLevelStr}</strong>. Esto indica que ${t(`categories.${dominant[0]}.summaryDesc`)} No obstante, tus respuestas reflejan una capacidad ${intLevelStr.toLowerCase()} para distanciarte de las emociones inmediatas al tomar decisiones financieras clave.`;
+        } else {
+          summaryText = `Your responses suggest that your strongest pattern corresponds to <strong>${domNames}</strong>, while your Intentionality score is <strong>${intLevelStr}</strong>. This suggests that ${t(`categories.${dominant[0]}.summaryDesc`)} However, your answers also indicate a ${intLevelStr.toLowerCase()} ability to step back from immediate emotions when making key financial decisions.`;
         }
+      }
 
-        // ACCOUNT MANAGEMENT
-        function addAccountRow(name = 'New Account', type = 'A', parentVal = 0, subVal = 0, subFV = 0) {
-            const id = 'acc_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-            accounts.push({ 
-                id, 
-                name, 
-                type, 
-                parentVal: parseFloat(parentVal), 
-                subVal: parseFloat(subVal),
-                subFV: parseFloat(subFV)
-            });
-            renderSetup();
-            renderWorksheet();
-            updateAllEntryDropdowns();
+      document.getElementById('res-personalized-text').innerHTML = summaryText;
+    }
+
+    function renderTab2(containerId, dominant, dominantState) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+
+      // If no dominant pattern or multi-tie, display appropriate header
+      let displayCats = dominant;
+      if (dominantState === "none") {
+        displayCats = ['avoidance', 'emotional', 'status', 'vigilance'];
+        const note = document.createElement('p');
+        note.style.fontWeight = 'bold';
+        note.style.marginBottom = '20px';
+        note.innerText = currentLang === 'es' 
+          ? 'Al no haber un patrón dominante, a continuación puedes explorar los cuatro aspectos para identificar reflexiones útiles:'
+          : 'Since no single pattern is dominant, you can explore all four dimensions below for useful reflections:';
+        container.appendChild(note);
+      } else if (dominantState === "tied") {
+        const heading = document.createElement('h3');
+        heading.style.color = 'var(--primary)';
+        heading.style.marginBottom = '16px';
+        heading.innerText = t('resDominantLabelPlural');
+        container.appendChild(heading);
+      }
+
+      displayCats.forEach(catKey => {
+        const cat = t(`categories.${catKey}`);
+        const card = document.createElement('div');
+        card.style.marginBottom = '28px';
+
+        card.innerHTML = `
+          <h3 style="color: var(--primary); font-size: 1.3rem; margin-bottom: 4px;">${cat.name}</h3>
+          <div style="font-style: italic; color: var(--text-muted); margin-bottom: 12px;">"${cat.subtitle}"</div>
+          <p style="font-size: 0.95rem;">${cat.desc}</p>
+
+          <div class="grid-2">
+            <div class="detail-box">
+              <h4 style="color: #0D9488;">✓ ${currentLang === 'es' ? 'Fortalezas potenciales' : 'Potential Strengths'}</h4>
+              <ul>
+                ${cat.strengths.map(s => `<li>${s}</li>`).join('')}
+              </ul>
+            </div>
+            <div class="detail-box">
+              <h4 style="color: #DC2626;">⚠ ${currentLang === 'es' ? 'Riesgos potenciales' : 'Potential Risks'}</h4>
+              <ul>
+                ${cat.risks.map(r => `<li>${r}</li>`).join('')}
+              </ul>
+            </div>
+          </div>
+
+          <div class="reflection-box">
+            <strong>${t('tab2Ask')}:</strong> "${cat.reflection}"
+          </div>
+
+          <div class="detail-box" style="background-color: #EFF6FF; border-color: #BFDBFE;">
+            <h4 style="color: #1E40AF;">💡 ${t('tab2Experiment')}</h4>
+            <p style="margin-bottom: 0;">${cat.experiment}</p>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function switchTab(tabNum) {
+      const btn1 = document.getElementById('tab-btn-1');
+      const btn2 = document.getElementById('tab-btn-2');
+
+      btn1.classList.toggle('active', tabNum === 1);
+      btn2.classList.toggle('active', tabNum === 2);
+      
+      btn1.setAttribute('aria-selected', tabNum === 1 ? 'true' : 'false');
+      btn2.setAttribute('aria-selected', tabNum === 2 ? 'true' : 'false');
+
+      document.getElementById('tab-content-1').style.display = tabNum === 1 ? 'block' : 'none';
+      document.getElementById('tab-content-2').style.display = tabNum === 2 ? 'block' : 'none';
+    }
+
+    /* ------------------------------------------
+       7. PRINT PREPARATION
+       ------------------------------------------ */
+    function preparePrintView() {
+      if (!calculatedResults) return;
+
+      const { averages, dominant, dominantState } = calculatedResults;
+
+      document.getElementById('print-title').innerText = t('title');
+      document.getElementById('print-date').innerText = new Date().toLocaleDateString(currentLang === 'es' ? 'es-ES' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+      const domLabelEl = document.getElementById('print-dominant-label');
+      const domTitleEl = document.getElementById('print-dominant-title');
+      const domDescEl = document.getElementById('print-dominant-desc');
+
+      if (dominantState === "none") {
+        domLabelEl.innerText = t('resDominantLabel');
+        domTitleEl.innerText = t('resNoDominantTitle');
+        domDescEl.innerText = t('resNoDominantDesc');
+      } else if (dominantState === "tied") {
+        domLabelEl.innerText = t('resDominantLabelPlural');
+        domTitleEl.innerText = dominant.map(c => t(`categories.${c}.name`).toUpperCase()).join(" & ");
+        domDescEl.innerText = t('resDominantPluralDesc');
+      } else {
+        const mainCat = dominant[0];
+        domLabelEl.innerText = t('resDominantLabel');
+        domTitleEl.innerText = t(`categories.${mainCat}.name`).toUpperCase();
+        domDescEl.innerText = t(`categories.${mainCat}.desc`);
+      }
+
+      renderChart('print-chart-container', averages);
+
+      document.getElementById('print-intent-title').innerText = t('intentTitle');
+      document.getElementById('print-intent-desc').innerText = t('intentDesc');
+      document.getElementById('print-intent-score').innerText = `${averages.intentionality.toFixed(1)} / 5.0`;
+
+      let levelKey = 'developing';
+      if (averages.intentionality >= 4.25) levelKey = 'veryStrong';
+      else if (averages.intentionality >= 3.50) levelKey = 'strong';
+      else if (averages.intentionality >= 2.50) levelKey = 'moderate';
+
+      document.getElementById('print-intent-label').innerText = `(${t(`intentionalityLevels.${levelKey}`)})`;
+      document.getElementById('print-synthesis-text').innerHTML = document.getElementById('res-personalized-text').innerHTML;
+
+      document.getElementById('print-tab2-heading').innerText = t('tab2');
+      renderTab2('print-tab2-container', dominant, dominantState);
+
+      document.getElementById('print-rel-title').innerText = t('relTitle');
+      document.getElementById('print-rel-p1').innerText = t('relP1');
+      document.getElementById('print-rel-p2').innerText = t('relP2');
+      document.getElementById('print-final-quote').innerText = t('finalQuote');
+    }
+
+    function printResults() {
+      preparePrintView();
+      window.print();
+    }
+
+    /* ------------------------------------------
+       8. UTILITY & RESET FUNCTIONS
+       ------------------------------------------ */
+    function resetAssessment() {
+      userAnswers = {};
+      calculatedResults = null;
+      currentQuestionIndex = 0;
+      switchView('view-intro');
+    }
+
+    // Keyboard Tab Switch Accessibility
+    document.addEventListener('keydown', function(e) {
+      if (e.target.classList.contains('tab-btn')) {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+          const tabNum = e.target.id === 'tab-btn-1' ? 2 : 1;
+          switchTab(tabNum);
+          document.getElementById(`tab-btn-${tabNum}`).focus();
         }
+      }
+    });
 
-        function removeAccount(id) {
-            accounts = accounts.filter(acc => acc.id !== id);
-            journalEntries.forEach(entry => {
-                entry.lines = entry.lines.filter(line => line.accountId !== id);
-            });
-            renderSetup();
-            renderWorksheet();
-            renderJournalEntries();
-        }
-
-        function updateAccountData(id, field, value) {
-            const acc = accounts.find(a => a.id === id);
-            if (acc) {
-                if (field === 'name' || field === 'type') {
-                    acc[field] = value;
-                } else {
-                    acc[field] = parseInput(value);
-                }
-            }
-            renderSetup();
-            renderWorksheet();
-            updateAllEntryDropdowns();
-        }
-
-        // TAB 1: SETUP RENDER
-        function renderSetup() {
-            const tbody = document.getElementById('setup-body');
-            tbody.innerHTML = '';
-
-            accounts.forEach(acc => {
-                const fvExcess = acc.subFV - acc.subVal;
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><input type="text" value="${acc.name}" onchange="updateAccountData('${acc.id}', 'name', this.value)"></td>
-                    <td>
-                        <select onchange="updateAccountData('${acc.id}', 'type', this.value)">
-                            ${Object.keys(accountTypes).map(t => `<option value="${t}" ${t === acc.type ? 'selected' : ''}>${accountTypes[t].name}</option>`).join('')}
-                        </select>
-                    </td>
-                    <td class="number-col">
-                        <input type="text" class="number-col" value="${formatInput(acc.parentVal)}" oninput="handleInputFormatting(this, (v) => updateAccountData('${acc.id}', 'parentVal', v))">
-                    </td>
-                    <td class="number-col">
-                        <input type="text" class="number-col" value="${formatInput(acc.subVal)}" oninput="handleInputFormatting(this, (v) => updateAccountData('${acc.id}', 'subVal', v))">
-                    </td>
-                    <td class="number-col">
-                        <input type="text" class="number-col" value="${formatInput(acc.subFV)}" oninput="handleInputFormatting(this, (v) => updateAccountData('${acc.id}', 'subFV', v))">
-                    </td>
-                    <td class="number-col" style="font-weight:600; color:${fvExcess >= 0 ? 'var(--primary-light)' : 'var(--danger)'};">
-                        ${formatNumber(fvExcess)}
-                    </td>
-                    <td class="center-col"><button class="btn-danger" style="padding:2px 6px;" onclick="removeAccount('${acc.id}')">✕</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        // CALCULATION LOGIC
-        function calculateAdjustments() {
-            const adj = {};
-            accounts.forEach(a => adj[a.id] = { dr: 0, cr: 0 });
-
-            journalEntries.forEach(entry => {
-                entry.lines.forEach(line => {
-                    if (line.accountId && adj[line.accountId]) {
-                        adj[line.accountId].dr += parseInput(line.debit);
-                        adj[line.accountId].cr += parseInput(line.credit);
-                    }
-                });
-            });
-            return adj;
-        }
-
-        // TAB 2: WORKSHEET RENDER
-        function renderWorksheet() {
-            const tbody = document.getElementById('worksheet-body');
-            tbody.innerHTML = '';
-
-            const adjustments = calculateAdjustments();
-            let totParent = 0, totSub = 0, totAdjDr = 0, totAdjCr = 0, totCons = 0;
-
-            accounts.forEach(acc => {
-                const adjDr = adjustments[acc.id] ? adjustments[acc.id].dr : 0;
-                const adjCr = adjustments[acc.id] ? adjustments[acc.id].cr : 0;
-                const isDebitNormal = (acc.type === 'A' || acc.type === 'Ex');
-
-                let cons = 0;
-                if (isDebitNormal) {
-                    cons = acc.parentVal + acc.subVal + adjDr - adjCr;
-                    totParent += acc.parentVal;
-                    totSub += acc.subVal;
-                } else {
-                    cons = acc.parentVal + acc.subVal + adjCr - adjDr;
-                    totParent -= acc.parentVal; 
-                    totSub -= acc.subVal;
-                }
-
-                totAdjDr += adjDr;
-                totAdjCr += adjCr;
-                totCons += isDebitNormal ? cons : -cons;
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><input type="text" value="${acc.name}" onchange="updateAccountData('${acc.id}', 'name', this.value)"></td>
-                    <td>
-                        <select onchange="updateAccountData('${acc.id}', 'type', this.value)">
-                            ${Object.keys(accountTypes).map(t => `<option value="${t}" ${t === acc.type ? 'selected' : ''}>${t}</option>`).join('')}
-                        </select>
-                    </td>
-                    <td class="number-col">
-                        <input type="text" class="number-col" value="${formatInput(acc.parentVal)}" oninput="handleInputFormatting(this, (v) => updateAccountData('${acc.id}', 'parentVal', v))">
-                    </td>
-                    <td class="number-col">
-                        <input type="text" class="number-col" value="${formatInput(acc.subVal)}" oninput="handleInputFormatting(this, (v) => updateAccountData('${acc.id}', 'subVal', v))">
-                    </td>
-                    <td class="number-col" style="color:var(--primary-light); font-weight:600;">${formatNumber(adjDr)}</td>
-                    <td class="number-col" style="color:var(--danger); font-weight:600;">${formatNumber(adjCr)}</td>
-                    <td class="number-col" style="font-weight:bold;">${formatNumber(cons)}</td>
-                    <td class="center-col"><button class="btn-danger" style="padding:2px 6px;" onclick="removeAccount('${acc.id}')">✕</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            document.getElementById('tot-parent').innerText = formatNumber(totParent);
-            document.getElementById('tot-sub').innerText = formatNumber(totSub);
-            document.getElementById('tot-adj-dr').innerText = formatNumber(totAdjDr);
-            document.getElementById('tot-adj-cr').innerText = formatNumber(totAdjCr);
-            document.getElementById('tot-cons').innerText = formatNumber(totCons);
-        }
-
-        // TAB 3: JOURNAL ENTRIES
-        function addNewJournalEntry(description = 'New Journal Entry') {
-            const entryId = 'entry_' + Date.now();
-            journalEntries.push({
-                id: entryId,
-                description: description,
-                lines: [
-                    { accountId: '', debit: 0, credit: 0 },
-                    { accountId: '', debit: 0, credit: 0 }
-                ]
-            });
-            renderJournalEntries();
-        }
-
-        function removeJournalEntry(entryId) {
-            journalEntries = journalEntries.filter(e => e.id !== entryId);
-            renderJournalEntries();
-            renderWorksheet();
-        }
-
-        function addLineToEntry(entryId) {
-            const entry = journalEntries.find(e => e.id === entryId);
-            if (entry) {
-                entry.lines.push({ accountId: '', debit: 0, credit: 0 });
-                renderJournalEntries();
-            }
-        }
-
-        function removeLineFromEntry(entryId, lineIndex) {
-            const entry = journalEntries.find(e => e.id === entryId);
-            if (entry && entry.lines.length > 1) {
-                entry.lines.splice(lineIndex, 1);
-                renderJournalEntries();
-                renderWorksheet();
-            }
-        }
-
-        function updateEntryHeader(entryId, description) {
-            const entry = journalEntries.find(e => e.id === entryId);
-            if (entry) entry.description = description;
-        }
-
-        function updateLineData(entryId, lineIndex, field, value) {
-            const entry = journalEntries.find(e => e.id === entryId);
-            if (entry && entry.lines[lineIndex]) {
-                if (field === 'accountId') entry.lines[lineIndex].accountId = value;
-                else entry.lines[lineIndex][field] = parseInput(value);
-            }
-            updateEntryBalanceStatus(entryId);
-            renderWorksheet();
-        }
-
-        function updateEntryBalanceStatus(entryId) {
-            const entry = journalEntries.find(e => e.id === entryId);
-            if (!entry) return;
-
-            let totalDr = 0, totalCr = 0;
-            entry.lines.forEach(l => {
-                totalDr += parseInput(l.debit);
-                totalCr += parseInput(l.credit);
-            });
-
-            const statusElem = document.getElementById(`status_${entryId}`);
-            if (statusElem) {
-                const diff = Math.abs(totalDr - totalCr);
-                if (diff < 0.01 && totalDr > 0) {
-                    statusElem.className = 'entry-status status-ok';
-                    statusElem.innerText = `BALANCED ($${formatNumber(totalDr)})`;
-                } else {
-                    statusElem.className = 'entry-status status-error';
-                    statusElem.innerText = `UNBALANCED (Diff: $${formatNumber(diff)})`;
-                }
-            }
-        }
-
-        function renderJournalEntries() {
-            const container = document.getElementById('entries-container');
-            container.innerHTML = '';
-
-            journalEntries.forEach((entry, eIdx) => {
-                const card = document.createElement('div');
-                card.className = 'entry-card';
-
-                let linesHtml = '';
-                entry.lines.forEach((line, lIdx) => {
-                    linesHtml += `
-                        <tr>
-                            <td>
-                                <select onchange="updateLineData('${entry.id}', ${lIdx}, 'accountId', this.value)">
-                                    <option value="" ${!line.accountId ? 'selected' : ''}>-- Select Account --</option>
-                                    ${accounts.map(a => `<option value="${a.id}" ${a.id === line.accountId ? 'selected' : ''}>[${a.type}] ${a.name}</option>`).join('')}
-                                </select>
-                            </td>
-                            <td class="number-col">
-                                <input type="text" class="number-col" value="${formatInput(line.debit)}" oninput="handleInputFormatting(this, (v) => updateLineData('${entry.id}', ${lIdx}, 'debit', v))">
-                            </td>
-                            <td class="number-col">
-                                <input type="text" class="number-col" value="${formatInput(line.credit)}" oninput="handleInputFormatting(this, (v) => updateLineData('${entry.id}', ${lIdx}, 'credit', v))">
-                            </td>
-                            <td class="center-col">
-                                <button class="btn-danger" style="padding:2px 6px;" onclick="removeLineFromEntry('${entry.id}', ${lIdx})">✕</button>
-                            </td>
-                        </tr>
-                    `;
-                });
-
-                card.innerHTML = `
-                    <div class="entry-header">
-                        <span class="badge">Entry #${eIdx + 1}</span>
-                        <input type="text" value="${entry.description}" placeholder="Description" onchange="updateEntryHeader('${entry.id}', this.value)">
-                        <div id="status_${entry.id}" class="entry-status status-error">VERIFYING</div>
-                        <button class="btn-danger" onclick="removeJournalEntry('${entry.id}')">Delete Entry</button>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="width: 50%;">Account</th>
-                                <th style="width: 20%;" class="number-col">Debit ($)</th>
-                                <th style="width: 20%;" class="number-col">Credit ($)</th>
-                                <th style="width: 10%;" class="center-col">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${linesHtml}
-                        </tbody>
-                    </table>
-                    <div style="margin-top: 10px;">
-                        <button class="btn-secondary" onclick="addLineToEntry('${entry.id}')">+ Add Line to Entry</button>
-                    </div>
-                `;
-                container.appendChild(card);
-                updateEntryBalanceStatus(entry.id);
-            });
-        }
-
-        function updateAllEntryDropdowns() {
-            renderJournalEntries();
-        }
-
-        // TAB 4: T-ACCOUNTS
-        function renderTAccounts() {
-            const container = document.getElementById('t-accounts-container');
-            container.innerHTML = '';
-
-            const adjustments = calculateAdjustments();
-
-            accounts.forEach(acc => {
-                const card = document.createElement('div');
-                card.className = 't-account';
-
-                let debitsHtml = '';
-                let creditsHtml = '';
-                const isDebitNormal = (acc.type === 'A' || acc.type === 'Ex');
-
-                if (acc.parentVal !== 0) {
-                    if (isDebitNormal) {
-                        debitsHtml += `<div class="t-item"><span>Apex Holdings BV</span><span>$${formatNumber(acc.parentVal)}</span></div>`;
-                    } else {
-                        creditsHtml += `<div class="t-item"><span>Apex Holdings BV</span><span>$${formatNumber(acc.parentVal)}</span></div>`;
-                    }
-                }
-
-                if (acc.subVal !== 0) {
-                    if (isDebitNormal) {
-                        debitsHtml += `<div class="t-item"><span>Beacon Tech BV</span><span>$${formatNumber(acc.subVal)}</span></div>`;
-                    } else {
-                        creditsHtml += `<div class="t-item"><span>Beacon Tech BV</span><span>$${formatNumber(acc.subVal)}</span></div>`;
-                    }
-                }
-
-                journalEntries.forEach((entry, idx) => {
-                    entry.lines.forEach(line => {
-                        if (line.accountId === acc.id) {
-                            if (line.debit > 0) {
-                                debitsHtml += `<div class="t-item"><span>Entry #${idx+1}</span><span>$${formatNumber(line.debit)}</span></div>`;
-                            }
-                            if (line.credit > 0) {
-                                creditsHtml += `<div class="t-item"><span>Entry #${idx+1}</span><span>$${formatNumber(line.credit)}</span></div>`;
-                            }
-                        }
-                    });
-                });
-
-                const adjDr = adjustments[acc.id] ? adjustments[acc.id].dr : 0;
-                const adjCr = adjustments[acc.id] ? adjustments[acc.id].cr : 0;
-                
-                let balance = 0;
-                if (isDebitNormal) {
-                    balance = acc.parentVal + acc.subVal + adjDr - adjCr;
-                } else {
-                    balance = acc.parentVal + acc.subVal + adjCr - adjDr;
-                }
-
-                card.innerHTML = `
-                    <div class="t-account-title">
-                        <span>${acc.name}</span>
-                        <span class="badge-type">${accountTypes[acc.type].name}</span>
-                    </div>
-                    <div class="t-account-body">
-                        <div class="t-debit">
-                            <div style="font-size:0.7rem; color:#a0aec0; text-align:center; font-weight:bold;">DEBIT</div>
-                            ${debitsHtml}
-                        </div>
-                        <div class="t-credit">
-                            <div style="font-size:0.7rem; color:#a0aec0; text-align:center; font-weight:bold;">CREDIT</div>
-                            ${creditsHtml}
-                        </div>
-                    </div>
-                    <div class="t-account-footer">
-                        <span>ENDING BALANCE (${isDebitNormal ? 'Dr' : 'Cr'}):</span>
-                        <span>$${formatNumber(balance)}</span>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        // RESET & LOAD DEFAULT CASE
-        function clearAllData() {
-            if (confirm("Are you sure you want to delete all accounts, setup values, and journal entries?")) {
-                accounts = [];
-                journalEntries = [];
-                renderSetup();
-                renderWorksheet();
-                renderJournalEntries();
-                renderTAccounts();
-            }
-        }
-
-        function clearAdjustments() {
-            if (confirm("Do you want to clear all journal entries and keep the trial balance accounts?")) {
-                journalEntries = [];
-                renderWorksheet();
-                renderJournalEntries();
-                renderTAccounts();
-            }
-        }
-
-        function loadDefaultCase() {
-            accounts = [
-                { id: 'acc_cash', name: 'Cash', type: 'A', parentVal: 1240000, subVal: 50000, subFV: 50000 },
-                { id: 'acc_inv', name: 'Investment in Beacon Tech.', type: 'A', parentVal: 0, subVal: 0, subFV: 0 },
-                { id: 'acc_land', name: 'Land', type: 'A', parentVal: 300000, subVal: 70000, subFV: 150000 },
-                { id: 'acc_building', name: 'Buildings', type: 'A', parentVal: 600000, subVal: 200000, subFV: 330000 },
-                { id: 'acc_equipment', name: 'Equipment', type: 'A', parentVal: 400000, subVal: 150000, subFV: 120000 },
-                { id: 'acc_brand', name: 'Brand Name (Intangible)', type: 'A', parentVal: 0, subVal: 0, subFV: 160000 },
-                { id: 'acc_goodwill', name: 'Goodwill', type: 'A', parentVal: 0, subVal: 0, subFV: 100000 },
-                { id: 'acc_liab', name: 'Liabilities', type: 'L', parentVal: 500000, subVal: 70000, subFV: 70000 },
-                { id: 'acc_cs_parent', name: 'Common Stock (Apex)', type: 'E', parentVal: 2040000, subVal: 0, subFV: 0 },
-                { id: 'acc_cs_sub', name: 'Common Stock (Beacon)', type: 'E', parentVal: 0, subVal: 200000, subFV: 0 },
-                { id: 'acc_apic_sub', name: 'Additional Paid-in Capital (Beacon)', type: 'E', parentVal: 0, subVal: 20000, subFV: 0 },
-                { id: 'acc_re_sub', name: 'Retained Earnings (Beacon)', type: 'E', parentVal: 0, subVal: 380000, subFV: 0 }
-            ];
-
-            journalEntries = [
-                {
-                    id: 'entry_acquisition',
-                    description: 'Entry 1: Initial Acquisition of Beacon Tech. Stock by Apex Holdings (Parent Books)',
-                    lines: [
-                        { accountId: 'acc_inv', debit: 1040000, credit: 0 },
-                        { accountId: 'acc_cash', debit: 0, credit: 1040000 }
-                    ]
-                },
-                {
-                    id: 'entry_elim_c',
-                    description: 'Entry 2 (Entry C): Workpaper Elimination of Sub Equity, FV Allocations & Goodwill',
-                    lines: [
-                        { accountId: 'acc_cs_sub', debit: 200000, credit: 0 },
-                        { accountId: 'acc_apic_sub', debit: 20000, credit: 0 },
-                        { accountId: 'acc_re_sub', debit: 380000, credit: 0 },
-                        { accountId: 'acc_land', debit: 80000, credit: 0 },
-                        { accountId: 'acc_building', debit: 130000, credit: 0 },
-                        { accountId: 'acc_brand', debit: 160000, credit: 0 },
-                        { accountId: 'acc_goodwill', debit: 100000, credit: 0 },
-                        { accountId: 'acc_equipment', debit: 0, credit: 30000 },
-                        { accountId: 'acc_inv', debit: 0, credit: 1040000 }
-                    ]
-                }
-            ];
-
-            renderSetup();
-            renderWorksheet();
-            renderJournalEntries();
-            renderTAccounts();
-        }
-    </script>
+    // Initialize Default Language
+    setLanguage('en');
+  </script>
 </body>
 </html>
