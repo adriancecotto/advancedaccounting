@@ -180,6 +180,31 @@
         .number-col { text-align: right; }
         .center-col { text-align: center; }
 
+        /* Drag and Drop Styling */
+        .drag-handle {
+            cursor: grab;
+            user-select: none;
+            color: #a0aec0;
+            font-weight: bold;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        tr.draggable-row {
+            transition: background-color 0.15s ease;
+        }
+        tr.draggable-row.dragging {
+            opacity: 0.4;
+            background-color: #e2e8f0;
+        }
+        tr.draggable-row.drag-over {
+            border-top: 3px solid var(--primary-light);
+            background-color: #ebf8ff;
+        }
+
         .entry-card {
             background-color: #ffffff;
             border: 1px solid var(--border-color);
@@ -188,6 +213,15 @@
             padding: 15px;
             margin-bottom: 20px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .entry-card.dragging {
+            opacity: 0.4;
+            transform: scale(0.98);
+        }
+        .entry-card.drag-over {
+            border-top: 3px solid var(--primary-light);
+            box-shadow: 0 4px 12px rgba(43, 108, 176, 0.2);
         }
 
         .entry-header {
@@ -417,17 +451,18 @@
             </div>
             
             <p style="font-size:0.85rem; color:#718096; margin-bottom:10px;">
-                Enter initial historical book values for Parent and Subsidiary, along with Subsidiary Fair Values. Select account types (Asset, Liability, Equity, Revenue, Expense) to ensure correct normal balance debit/credit behavior.
+                Enter initial historical book values for Parent and Subsidiary, along with Subsidiary Fair Values. You can drag and drop rows using the handle <strong>⋮⋮</strong> to reorder accounts.
             </p>
 
             <table>
                 <thead>
                     <tr>
+                        <th style="width: 3%;" class="center-col"></th>
                         <th style="width: 20%;">Account Title</th>
                         <th style="width: 12%;">Type</th>
-                        <th style="width: 16%;" class="number-col">Parent Book Value ($)</th>
-                        <th style="width: 16%;" class="number-col">Sub Book Value ($)</th>
-                        <th style="width: 16%;" class="number-col">Sub Fair Value ($)</th>
+                        <th style="width: 15%;" class="number-col">Parent Book Value ($)</th>
+                        <th style="width: 15%;" class="number-col">Sub Book Value ($)</th>
+                        <th style="width: 15%;" class="number-col">Sub Fair Value ($)</th>
                         <th style="width: 15%;" class="number-col">FV Excess ($)</th>
                         <th style="width: 5%;" class="center-col">Action</th>
                     </tr>
@@ -487,7 +522,7 @@
             </div>
 
             <p style="font-size:0.85rem; color:#718096; margin-bottom:15px;">
-                Create investment entries on the acquirer's books or Elimination Entry C for the consolidation workpaper.
+                Create investment entries on the acquirer's books or Elimination Entry C for the consolidation workpaper. Drag and drop entry cards using the handle <strong>⋮⋮ Drag to reorder</strong> to adjust sequence.
             </p>
 
             <div id="entries-container">
@@ -516,6 +551,10 @@
         // GLOBAL STATE
         let accounts = [];
         let journalEntries = [];
+
+        // DRAG & DROP STATE
+        let draggedAccountIndex = null;
+        let draggedEntryIndex = null;
 
         // ACCOUNT TYPES & NORMAL BALANCES
         const accountTypes = {
@@ -588,7 +627,6 @@
                     acc[field] = parseInput(value);
                 }
                 
-                // Actualizar la celda de FV Excess sin redibujar la tabla entera
                 const excessElem = document.getElementById(`excess_${id}`);
                 if (excessElem) {
                     const fvExcess = acc.subFV - acc.subVal;
@@ -605,15 +643,61 @@
             }
         }
 
+        // DRAG & DROP FOR ACCOUNTS (TAB 1)
+        function handleAccountDragStart(e, index) {
+            draggedAccountIndex = index;
+            e.currentTarget.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleAccountDragOver(e, index) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const row = e.currentTarget;
+            row.classList.add('drag-over');
+        }
+
+        function handleAccountDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleAccountDrop(e, targetIndex) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            if (draggedAccountIndex !== null && draggedAccountIndex !== targetIndex) {
+                const movedAccount = accounts.splice(draggedAccountIndex, 1)[0];
+                accounts.splice(targetIndex, 0, movedAccount);
+                renderSetup();
+                updateAllEntryDropdowns();
+            }
+            draggedAccountIndex = null;
+        }
+
+        function handleAccountDragEnd(e) {
+            e.currentTarget.classList.remove('dragging');
+            document.querySelectorAll('tr.draggable-row').forEach(r => r.classList.remove('drag-over'));
+            draggedAccountIndex = null;
+        }
+
         // TAB 1: SETUP RENDER
         function renderSetup() {
             const tbody = document.getElementById('setup-body');
             tbody.innerHTML = '';
 
-            accounts.forEach(acc => {
+            accounts.forEach((acc, idx) => {
                 const fvExcess = acc.subFV - acc.subVal;
                 const tr = document.createElement('tr');
+                tr.className = 'draggable-row';
+                tr.draggable = true;
+                
+                tr.addEventListener('dragstart', (e) => handleAccountDragStart(e, idx));
+                tr.addEventListener('dragover', (e) => handleAccountDragOver(e, idx));
+                tr.addEventListener('dragleave', handleAccountDragLeave);
+                tr.addEventListener('drop', (e) => handleAccountDrop(e, idx));
+                tr.addEventListener('dragend', handleAccountDragEnd);
+
                 tr.innerHTML = `
+                    <td class="drag-handle">⋮⋮</td>
                     <td><input type="text" value="${acc.name}" oninput="updateAccountDataSilent('${acc.id}', 'name', this.value)"></td>
                     <td>
                         <select onchange="updateAccountDataSilent('${acc.id}', 'type', this.value)">
@@ -721,6 +805,40 @@
             document.getElementById('tot-cons').innerText = formatNumber(totCons);
         }
 
+        // DRAG & DROP FOR JOURNAL ENTRIES (TAB 3)
+        function handleEntryDragStart(e, index) {
+            draggedEntryIndex = index;
+            e.currentTarget.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleEntryDragOver(e, index) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleEntryDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleEntryDrop(e, targetIndex) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            if (draggedEntryIndex !== null && draggedEntryIndex !== targetIndex) {
+                const movedEntry = journalEntries.splice(draggedEntryIndex, 1)[0];
+                journalEntries.splice(targetIndex, 0, movedEntry);
+                renderJournalEntries();
+            }
+            draggedEntryIndex = null;
+        }
+
+        function handleEntryDragEnd(e) {
+            e.currentTarget.classList.remove('dragging');
+            document.querySelectorAll('.entry-card').forEach(c => c.classList.remove('drag-over'));
+            draggedEntryIndex = null;
+        }
+
         // TAB 3: JOURNAL ENTRIES
         function addNewJournalEntry(description = 'New Journal Entry') {
             const entryId = 'entry_' + Date.now();
@@ -808,6 +926,13 @@
             journalEntries.forEach((entry, eIdx) => {
                 const card = document.createElement('div');
                 card.className = 'entry-card';
+                card.draggable = true;
+
+                card.addEventListener('dragstart', (e) => handleEntryDragStart(e, eIdx));
+                card.addEventListener('dragover', (e) => handleEntryDragOver(e, eIdx));
+                card.addEventListener('dragleave', handleEntryDragLeave);
+                card.addEventListener('drop', (e) => handleEntryDrop(e, eIdx));
+                card.addEventListener('dragend', handleEntryDragEnd);
 
                 let linesHtml = '';
                 entry.lines.forEach((line, lIdx) => {
@@ -838,6 +963,7 @@
 
                 card.innerHTML = `
                     <div class="entry-header">
+                        <span class="drag-handle" style="margin-right:5px;">⋮⋮</span>
                         <span class="badge">Entry #${eIdx + 1}</span>
                         <input type="text" value="${entry.description}" placeholder="Description" onchange="updateEntryHeader('${entry.id}', this.value)">
                         <div id="status_${entry.id}" class="entry-status status-error">VERIFYING</div>
