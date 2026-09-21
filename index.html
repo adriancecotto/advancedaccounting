@@ -118,7 +118,6 @@
             display: block;
         }
 
-        /* Narrative Formatting */
         .narrative-card {
             background-color: #f8fafc;
             border: 1px solid var(--border-color);
@@ -297,8 +296,7 @@
     <header>
         <div>
             <h1>Consolidation & Financial Simulator</h1>
-            <small>Interactive educational tool for business combinations and financial consolidation · Created by Adrian R. Cecotto · 2026</small>
-            
+            <small>Interactive educational tool for business combinations and financial consolidation</small>
         </div>
         <div class="global-actions">
             <button class="btn-outline" onclick="loadDefaultCase()">Load Default Case</button>
@@ -550,33 +548,11 @@
             return parseFloat(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
-        function formatInput(val) {
-            if (val === '' || val === undefined || val === null) return '';
-            let clean = val.toString().replace(/,/g, '');
-            let num = parseFloat(clean);
-            if (isNaN(num)) return '';
-            return num.toLocaleString('en-US');
-        }
-
         function parseInput(val) {
             if (!val) return 0;
             let clean = val.toString().replace(/,/g, '');
             let num = parseFloat(clean);
             return isNaN(num) ? 0 : num;
-        }
-
-        function handleInputFormatting(inputElement, callback) {
-            let cursorPosition = inputElement.selectionStart;
-            let originalLength = inputElement.value.length;
-            
-            let num = parseInput(inputElement.value);
-            inputElement.value = inputElement.value ? formatInput(num) : '';
-            
-            let newLength = inputElement.value.length;
-            cursorPosition = cursorPosition + (newLength - originalLength);
-            inputElement.setSelectionRange(cursorPosition, cursorPosition);
-            
-            callback(num);
         }
 
         // ACCOUNT MANAGEMENT
@@ -591,7 +567,6 @@
                 subFV: parseFloat(subFV)
             });
             renderSetup();
-            renderWorksheet();
             updateAllEntryDropdowns();
         }
 
@@ -601,11 +576,10 @@
                 entry.lines = entry.lines.filter(line => line.accountId !== id);
             });
             renderSetup();
-            renderWorksheet();
             renderJournalEntries();
         }
 
-        function updateAccountData(id, field, value) {
+        function updateAccountDataSilent(id, field, value) {
             const acc = accounts.find(a => a.id === id);
             if (acc) {
                 if (field === 'name' || field === 'type') {
@@ -613,10 +587,22 @@
                 } else {
                     acc[field] = parseInput(value);
                 }
+                
+                // Actualizar la celda de FV Excess sin redibujar la tabla entera
+                const excessElem = document.getElementById(`excess_${id}`);
+                if (excessElem) {
+                    const fvExcess = acc.subFV - acc.subVal;
+                    excessElem.innerText = formatNumber(fvExcess);
+                    excessElem.style.color = fvExcess >= 0 ? 'var(--primary-light)' : 'var(--danger)';
+                }
             }
-            renderSetup();
-            renderWorksheet();
-            updateAllEntryDropdowns();
+        }
+
+        function formatInputOnBlur(inputElement, id, field) {
+            const acc = accounts.find(a => a.id === id);
+            if (acc && (field === 'parentVal' || field === 'subVal' || field === 'subFV')) {
+                inputElement.value = acc[field].toLocaleString('en-US');
+            }
         }
 
         // TAB 1: SETUP RENDER
@@ -628,22 +614,28 @@
                 const fvExcess = acc.subFV - acc.subVal;
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><input type="text" value="${acc.name}" onchange="updateAccountData('${acc.id}', 'name', this.value)"></td>
+                    <td><input type="text" value="${acc.name}" oninput="updateAccountDataSilent('${acc.id}', 'name', this.value)"></td>
                     <td>
-                        <select onchange="updateAccountData('${acc.id}', 'type', this.value)">
+                        <select onchange="updateAccountDataSilent('${acc.id}', 'type', this.value)">
                             ${Object.keys(accountTypes).map(t => `<option value="${t}" ${t === acc.type ? 'selected' : ''}>${accountTypes[t].name}</option>`).join('')}
                         </select>
                     </td>
                     <td class="number-col">
-                        <input type="text" class="number-col" value="${formatInput(acc.parentVal)}" oninput="handleInputFormatting(this, (v) => updateAccountData('${acc.id}', 'parentVal', v))">
+                        <input type="text" class="number-col" value="${acc.parentVal ? acc.parentVal.toLocaleString('en-US') : ''}" 
+                            oninput="updateAccountDataSilent('${acc.id}', 'parentVal', this.value)"
+                            onblur="formatInputOnBlur(this, '${acc.id}', 'parentVal')">
                     </td>
                     <td class="number-col">
-                        <input type="text" class="number-col" value="${formatInput(acc.subVal)}" oninput="handleInputFormatting(this, (v) => updateAccountData('${acc.id}', 'subVal', v))">
+                        <input type="text" class="number-col" value="${acc.subVal ? acc.subVal.toLocaleString('en-US') : ''}" 
+                            oninput="updateAccountDataSilent('${acc.id}', 'subVal', this.value)"
+                            onblur="formatInputOnBlur(this, '${acc.id}', 'subVal')">
                     </td>
                     <td class="number-col">
-                        <input type="text" class="number-col" value="${formatInput(acc.subFV)}" oninput="handleInputFormatting(this, (v) => updateAccountData('${acc.id}', 'subFV', v))">
+                        <input type="text" class="number-col" value="${acc.subFV ? acc.subFV.toLocaleString('en-US') : ''}" 
+                            oninput="updateAccountDataSilent('${acc.id}', 'subFV', this.value)"
+                            onblur="formatInputOnBlur(this, '${acc.id}', 'subFV')">
                     </td>
-                    <td class="number-col" style="font-weight:600; color:${fvExcess >= 0 ? 'var(--primary-light)' : 'var(--danger)'};">
+                    <td class="number-col" id="excess_${acc.id}" style="font-weight:600; color:${fvExcess >= 0 ? 'var(--primary-light)' : 'var(--danger)'};">
                         ${formatNumber(fvExcess)}
                     </td>
                     <td class="center-col"><button class="btn-danger" style="padding:2px 6px;" onclick="removeAccount('${acc.id}')">✕</button></td>
@@ -698,17 +690,21 @@
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><input type="text" value="${acc.name}" onchange="updateAccountData('${acc.id}', 'name', this.value)"></td>
+                    <td><input type="text" value="${acc.name}" oninput="updateAccountDataSilent('${acc.id}', 'name', this.value)"></td>
                     <td>
-                        <select onchange="updateAccountData('${acc.id}', 'type', this.value)">
+                        <select onchange="updateAccountDataSilent('${acc.id}', 'type', this.value)">
                             ${Object.keys(accountTypes).map(t => `<option value="${t}" ${t === acc.type ? 'selected' : ''}>${t}</option>`).join('')}
                         </select>
                     </td>
                     <td class="number-col">
-                        <input type="text" class="number-col" value="${formatInput(acc.parentVal)}" oninput="handleInputFormatting(this, (v) => updateAccountData('${acc.id}', 'parentVal', v))">
+                        <input type="text" class="number-col" value="${acc.parentVal ? acc.parentVal.toLocaleString('en-US') : ''}" 
+                            oninput="updateAccountDataSilent('${acc.id}', 'parentVal', this.value)"
+                            onblur="formatInputOnBlur(this, '${acc.id}', 'parentVal')">
                     </td>
                     <td class="number-col">
-                        <input type="text" class="number-col" value="${formatInput(acc.subVal)}" oninput="handleInputFormatting(this, (v) => updateAccountData('${acc.id}', 'subVal', v))">
+                        <input type="text" class="number-col" value="${acc.subVal ? acc.subVal.toLocaleString('en-US') : ''}" 
+                            oninput="updateAccountDataSilent('${acc.id}', 'subVal', this.value)"
+                            onblur="formatInputOnBlur(this, '${acc.id}', 'subVal')">
                     </td>
                     <td class="number-col" style="color:var(--primary-light); font-weight:600;">${formatNumber(adjDr)}</td>
                     <td class="number-col" style="color:var(--danger); font-weight:600;">${formatNumber(adjCr)}</td>
@@ -742,7 +738,6 @@
         function removeJournalEntry(entryId) {
             journalEntries = journalEntries.filter(e => e.id !== entryId);
             renderJournalEntries();
-            renderWorksheet();
         }
 
         function addLineToEntry(entryId) {
@@ -758,7 +753,6 @@
             if (entry && entry.lines.length > 1) {
                 entry.lines.splice(lineIndex, 1);
                 renderJournalEntries();
-                renderWorksheet();
             }
         }
 
@@ -774,7 +768,14 @@
                 else entry.lines[lineIndex][field] = parseInput(value);
             }
             updateEntryBalanceStatus(entryId);
-            renderWorksheet();
+        }
+
+        function formatJournalInputOnBlur(inputElement, entryId, lineIndex, field) {
+            const entry = journalEntries.find(e => e.id === entryId);
+            if (entry && entry.lines[lineIndex]) {
+                const val = entry.lines[lineIndex][field];
+                inputElement.value = val ? val.toLocaleString('en-US') : '';
+            }
         }
 
         function updateEntryBalanceStatus(entryId) {
@@ -815,14 +816,18 @@
                             <td>
                                 <select onchange="updateLineData('${entry.id}', ${lIdx}, 'accountId', this.value)">
                                     <option value="" ${!line.accountId ? 'selected' : ''}>-- Select Account --</option>
-                                    ${accounts.map(a => `<option value="${a.id}" ${a.id === line.accountId ? 'selected' : ''}>[${a.type}] ${a.name}</option>`).join('')}
+                                    ${accounts.map(a => `<option value="${a.id}" ${a.id === line.accountId ? 'selected' : ''}>[${a.type}]${a.name}</option>`).join('')}
                                 </select>
                             </td>
                             <td class="number-col">
-                                <input type="text" class="number-col" value="${formatInput(line.debit)}" oninput="handleInputFormatting(this, (v) => updateLineData('${entry.id}', ${lIdx}, 'debit', v))">
+                                <input type="text" class="number-col" value="${line.debit ? line.debit.toLocaleString('en-US') : ''}" 
+                                    oninput="updateLineData('${entry.id}', ${lIdx}, 'debit', this.value)"
+                                    onblur="formatJournalInputOnBlur(this, '${entry.id}', ${lIdx}, 'debit')">
                             </td>
                             <td class="number-col">
-                                <input type="text" class="number-col" value="${formatInput(line.credit)}" oninput="handleInputFormatting(this, (v) => updateLineData('${entry.id}', ${lIdx}, 'credit', v))">
+                                <input type="text" class="number-col" value="${line.credit ? line.credit.toLocaleString('en-US') : ''}" 
+                                    oninput="updateLineData('${entry.id}', ${lIdx}, 'credit', this.value)"
+                                    onblur="formatJournalInputOnBlur(this, '${entry.id}', ${lIdx}, 'credit')">
                             </td>
                             <td class="center-col">
                                 <button class="btn-danger" style="padding:2px 6px;" onclick="removeLineFromEntry('${entry.id}', ${lIdx})">✕</button>
@@ -881,17 +886,17 @@
 
                 if (acc.parentVal !== 0) {
                     if (isDebitNormal) {
-                        debitsHtml += `<div class="t-item"><span>Apex Holdings BV</span><span>$${formatNumber(acc.parentVal)}</span></div>`;
+                        debitsHtml += `<div class="t-item"><span>Parent BV</span><span>$${formatNumber(acc.parentVal)}</span></div>`;
                     } else {
-                        creditsHtml += `<div class="t-item"><span>Apex Holdings BV</span><span>$${formatNumber(acc.parentVal)}</span></div>`;
+                        creditsHtml += `<div class="t-item"><span>Parent BV</span><span>$${formatNumber(acc.parentVal)}</span></div>`;
                     }
                 }
 
                 if (acc.subVal !== 0) {
                     if (isDebitNormal) {
-                        debitsHtml += `<div class="t-item"><span>Beacon Tech BV</span><span>$${formatNumber(acc.subVal)}</span></div>`;
+                        debitsHtml += `<div class="t-item"><span>Sub BV</span><span>$${formatNumber(acc.subVal)}</span></div>`;
                     } else {
-                        creditsHtml += `<div class="t-item"><span>Beacon Tech BV</span><span>$${formatNumber(acc.subVal)}</span></div>`;
+                        creditsHtml += `<div class="t-item"><span>Sub BV</span><span>$${formatNumber(acc.subVal)}</span></div>`;
                     }
                 }
 
